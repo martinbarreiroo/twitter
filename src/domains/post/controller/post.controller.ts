@@ -9,11 +9,102 @@ import { PostRepositoryImpl } from "../repository";
 import { PostService, PostServiceImpl } from "../service";
 import { CreatePostInputDTO } from "../dto";
 
+/**
+ * @swagger
+ * tags:
+ *   name: Posts
+ *   description: Post management
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Post:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: Post ID
+ *         content:
+ *           type: string
+ *           description: Post content
+ *         authorId:
+ *           type: string
+ *           description: Author ID
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: Creation timestamp
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           description: Last update timestamp
+ *     CreatePostInput:
+ *       type: object
+ *       required:
+ *         - content
+ *       properties:
+ *         content:
+ *           type: string
+ *           description: Post content
+ *     PaginationParams:
+ *       type: object
+ *       properties:
+ *         limit:
+ *           type: integer
+ *           description: Maximum number of posts to return
+ *         before:
+ *           type: string
+ *           description: Cursor for pagination (before timestamp)
+ *         after:
+ *           type: string
+ *           description: Cursor for pagination (after timestamp)
+ */
+
 export const postRouter = Router();
 
 // Use dependency injection
 const service: PostService = new PostServiceImpl(new PostRepositoryImpl(db));
 
+/**
+ * @swagger
+ * /api/post:
+ *   get:
+ *     summary: Get latest posts
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Maximum number of posts to return
+ *       - in: query
+ *         name: before
+ *         schema:
+ *           type: string
+ *         description: Cursor for pagination (before timestamp)
+ *       - in: query
+ *         name: after
+ *         schema:
+ *           type: string
+ *         description: Cursor for pagination (after timestamp)
+ *     responses:
+ *       200:
+ *         description: List of posts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Post'
+ *       401:
+ *         description: Not authorized
+ *       500:
+ *         description: Server error
+ */
 postRouter.get("/", async (req: Request, res: Response) => {
   const { userId } = res.locals.context;
   const { limit, before, after } = req.query as Record<string, string>;
@@ -28,6 +119,37 @@ postRouter.get("/", async (req: Request, res: Response) => {
 });
 
 // Important: More specific routes must come before generic routes with path parameters
+/**
+ * @swagger
+ * /api/post/by_user/{userId}:
+ *   get:
+ *     summary: Get posts by a specific user
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the user whose posts to fetch
+ *     responses:
+ *       200:
+ *         description: List of posts by the specified user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Post'
+ *       401:
+ *         description: Not authorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
 postRouter.get("/by_user/:userId", async (req: Request, res: Response) => {
   const { userId } = res.locals.context;
   const { userId: authorId } = req.params;
@@ -38,6 +160,35 @@ postRouter.get("/by_user/:userId", async (req: Request, res: Response) => {
 });
 
 // Generic route with path parameter should come after more specific routes
+/**
+ * @swagger
+ * /api/post/{postId}:
+ *   get:
+ *     summary: Get a specific post by ID
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: postId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the post to fetch
+ *     responses:
+ *       200:
+ *         description: Post details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Post'
+ *       401:
+ *         description: Not authorized
+ *       404:
+ *         description: Post not found
+ *       500:
+ *         description: Server error
+ */
 postRouter.get("/:postId", async (req: Request, res: Response) => {
   const { userId } = res.locals.context;
   const { postId } = req.params;
@@ -50,6 +201,34 @@ postRouter.get("/:postId", async (req: Request, res: Response) => {
   return res.status(HttpStatus.OK).json(post);
 });
 
+/**
+ * @swagger
+ * /api/post:
+ *   post:
+ *     summary: Create a new post
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreatePostInput'
+ *     responses:
+ *       201:
+ *         description: Post created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Post'
+ *       400:
+ *         description: Invalid input data
+ *       401:
+ *         description: Not authorized
+ *       500:
+ *         description: Server error
+ */
 postRouter.post(
   "/",
   BodyValidation(CreatePostInputDTO),
@@ -63,6 +242,33 @@ postRouter.post(
   }
 );
 
+/**
+ * @swagger
+ * /api/post/{postId}:
+ *   delete:
+ *     summary: Delete a post
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: postId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the post to delete
+ *     responses:
+ *       200:
+ *         description: Post deleted successfully
+ *       401:
+ *         description: Not authorized
+ *       403:
+ *         description: Forbidden - not the post owner
+ *       404:
+ *         description: Post not found
+ *       500:
+ *         description: Server error
+ */
 postRouter.delete("/:postId", async (req: Request, res: Response) => {
   const { userId } = res.locals.context;
   const { postId } = req.params;
