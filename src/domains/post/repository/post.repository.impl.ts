@@ -36,7 +36,7 @@ export class PostRepositoryImpl implements PostRepository {
 
     const followedUserIds = followedUsers.map((follow) => follow.followedId);
 
-    // Get posts from public accounts OR accounts the user follows
+    // Get posts from public accounts, accounts the user follows, or the user's own posts
     const posts = await this.db.post.findMany({
       where: {
         OR: [
@@ -51,6 +51,10 @@ export class PostRepositoryImpl implements PostRepository {
             authorId: {
               in: followedUserIds,
             },
+          },
+          // User's own posts
+          {
+            authorId: userId,
           },
         ],
       },
@@ -124,7 +128,10 @@ export class PostRepositoryImpl implements PostRepository {
     return new PostDTO(post);
   }
 
-  async getByAuthorId(userId: string, authorId: string): Promise<PostDTO[]> {
+  async getByAuthorId(
+    userId: string,
+    authorId: string
+  ): Promise<PostDTO[] | null> {
     // Get the author
     const author = await this.db.user.findUnique({
       where: {
@@ -134,7 +141,7 @@ export class PostRepositoryImpl implements PostRepository {
 
     // If author doesn't exist, return empty array
     if (!author) {
-      return [];
+      return null;
     }
 
     // If the user is requesting their own posts
@@ -166,9 +173,9 @@ export class PostRepositoryImpl implements PostRepository {
       },
     });
 
-    // If the user doesn't follow the private author, return empty array
+    // If the user doesn't follow the private author, return null
     if (!follows) {
-      return [];
+      return null;
     }
 
     // If the user follows the author, return all posts

@@ -23,6 +23,10 @@ export class SignupInputDTO {
 
   @IsString()
   @IsNotEmpty()
+  name: string;
+
+  @IsString()
+  @IsNotEmpty()
   @IsStrongPassword()
   password: string;
 
@@ -33,12 +37,14 @@ export class SignupInputDTO {
   constructor(
     email: string,
     username: string,
+    name: string,
     password: string,
     isPrivate?: boolean
   ) {
     this.email = email;
     this.password = password;
     this.username = username;
+    this.name = name;
     this.isPrivate = isPrivate;
   }
 }
