@@ -3,7 +3,7 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
-import { Constants, NodeEnv, Logger } from "@utils";
+import { Constants, NodeEnv, Logger, setupSwagger } from "@utils";
 import { router } from "@router";
 import { ErrorHandling } from "@utils/errors";
 
@@ -28,8 +28,14 @@ app.use(
 
 app.use("/api", router);
 
+// Setup Swagger documentation
+setupSwagger(app);
+
 app.use(ErrorHandling);
 
 app.listen(Constants.PORT, () => {
   Logger.info(`Server listening on port ${Constants.PORT}`);
+  Logger.info(
+    `Swagger documentation available at http://localhost:${Constants.PORT}/api-docs`
+  );
 });
