@@ -45,3 +45,18 @@ userRouter.delete('/', async (req: Request, res: Response) => {
 
   return res.status(HttpStatus.OK)
 })
+
+// New endpoint to toggle privacy settings
+userRouter.patch('/privacy', async (req: Request, res: Response) => {
+  const { userId } = res.locals.context
+  const { isPrivate } = req.body as { isPrivate: boolean }
+
+  await service.updatePrivacy(userId, isPrivate)
+  
+  const updatedUser = await service.getUser(userId)
+
+  return res.status(HttpStatus.OK).json({ 
+    message: 'Privacy settings updated successfully',
+    user: updatedUser
+  })
+})
