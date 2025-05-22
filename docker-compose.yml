@@ -8,11 +8,11 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
-      - '5432:5432'
+      - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 1s
       timeout: 1s
       retries: 15
@@ -28,9 +28,9 @@ services:
       - DATABASE_URL=${DOCKER_DATABASE_URL}
       - PORT=8080
     env_file:
-      - .envrc
+      - .env
     ports:
-      - '8080:8080'
+      - "8080:8080"
     volumes: # if there's any new files containing sources, add them as volumes
       - ./src:/app/src
       - ./prisma:/app/prisma
