@@ -9,7 +9,7 @@ echo "*********************************************************"
 cd "$(dirname "$0")/.."
 
 # Run Prettier
-npm run lint
+npm run format
 format_status=$?
 
 if [ "$format_status" -ne 0 ]; then
@@ -22,6 +22,17 @@ if [ "$format_status" -ne 0 ]; then
     exit 1
 fi
 
+npm run lint
+lint_status=$?
+if [ "$lint_status" -ne 0 ]; then
+    echo "*********************************************************"
+    echo "       ********************************************      "
+    echo 1>&2 "ESlint found issues it could not fix."
+    echo "Run 'npm run lint' and fix the issues manually"
+    echo "       ********************************************      "
+    echo "*********************************************************"
+    exit 1
+fi
 
 # Add all changes to the staging area
 echo "*********************************************************"
