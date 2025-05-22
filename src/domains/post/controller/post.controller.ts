@@ -27,15 +27,7 @@ postRouter.get("/", async (req: Request, res: Response) => {
   return res.status(HttpStatus.OK).json(posts);
 });
 
-postRouter.get("/:postId", async (req: Request, res: Response) => {
-  const { userId } = res.locals.context;
-  const { postId } = req.params;
-
-  const post = await service.getPost(userId, postId);
-
-  return res.status(HttpStatus.OK).json(post);
-});
-
+// Important: More specific routes must come before generic routes with path parameters
 postRouter.get("/by_user/:userId", async (req: Request, res: Response) => {
   const { userId } = res.locals.context;
   const { userId: authorId } = req.params;
@@ -43,6 +35,19 @@ postRouter.get("/by_user/:userId", async (req: Request, res: Response) => {
   const posts = await service.getPostsByAuthor(userId, authorId);
 
   return res.status(HttpStatus.OK).json(posts);
+});
+
+// Generic route with path parameter should come after more specific routes
+postRouter.get("/:postId", async (req: Request, res: Response) => {
+  const { userId } = res.locals.context;
+  const { postId } = req.params;
+
+  console.log(`Attempting to get post with ID: ${postId} for user: ${userId}`); // Debug log
+
+  // Breakpoint would be set on the next line during debugging
+  const post = await service.getPost(userId, postId);
+
+  return res.status(HttpStatus.OK).json(post);
 });
 
 postRouter.post(

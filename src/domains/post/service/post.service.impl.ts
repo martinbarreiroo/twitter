@@ -34,6 +34,8 @@ export class PostServiceImpl implements PostService {
   }
 
   async getPostsByAuthor(userId: string, authorId: string): Promise<PostDTO[]> {
-    return await this.repository.getByAuthorId(userId, authorId);
+    const posts = await this.repository.getByAuthorId(userId, authorId);
+    if (!posts) throw new NotFoundException("post");
+    return posts;
   }
 }
