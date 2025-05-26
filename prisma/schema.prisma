@@ -55,6 +55,7 @@ model Post {
   authorId String   @db.Uuid // Foreign Key
   content  String   @db.VarChar(240) // Limit the content to 240 characters
   images   String[]
+  parentId String?  @db.Uuid // Foreign Key for comments (null for posts, postId for comments)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -62,6 +63,8 @@ model Post {
 
   author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade) // One to many
   reactions Reaction[] // A post can have many reactions
+  parent    Post?      @relation("PostComments", fields: [parentId], references: [id], onDelete: Cascade) // Parent post for comments
+  comments  Post[]     @relation("PostComments") // Comments on this post
 }
 
 model Reaction {

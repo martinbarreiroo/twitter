@@ -193,65 +193,9 @@ postRouter.get("/:postId", async (req: Request, res: Response) => {
   const { userId } = res.locals.context;
   const { postId } = req.params;
 
-  console.log(`Attempting to get post with ID: ${postId} for user: ${userId}`); // Debug log
+  const postWithReactions = await service.getPostWithReactions(userId, postId);
 
-  // Breakpoint would be set on the next line during debugging
-  const post = await service.getPost(userId, postId);
-
-  try {
-    // Use raw SQL queries instead of Prisma client to avoid caching issues
-    const likesResult = await db.$queryRaw`
-      SELECT COUNT(*) as count 
-      FROM "Reaction" 
-      WHERE "postId" = ${postId} AND "type" = 'LIKE'
-    `;
-    const likeCount =
-      Array.isArray(likesResult) && likesResult[0]
-        ? Number(likesResult[0].count)
-        : 0;
-
-    const retweetsResult = await db.$queryRaw`
-      SELECT COUNT(*) as count 
-      FROM "Reaction" 
-      WHERE "postId" = ${postId} AND "type" = 'RETWEET'
-    `;
-    const retweetCount =
-      Array.isArray(retweetsResult) && retweetsResult[0]
-        ? Number(retweetsResult[0].count)
-        : 0;
-
-    // Check if current user has liked or retweeted
-    const userReactionsResult = await db.$queryRaw`
-      SELECT "type" 
-      FROM "Reaction" 
-      WHERE "postId" = ${postId} AND "authorId" = ${userId}
-    `;
-
-    const userReactions = Array.isArray(userReactionsResult)
-      ? userReactionsResult
-      : [];
-    const hasLiked = userReactions.some((reaction) => reaction.type === "LIKE");
-    const hasRetweeted = userReactions.some(
-      (reaction) => reaction.type === "RETWEET"
-    );
-
-    // Add reaction data to post response
-    const postWithReactions = {
-      ...post,
-      reactions: {
-        likeCount,
-        retweetCount,
-        hasLiked,
-        hasRetweeted,
-      },
-    };
-
-    return res.status(HttpStatus.OK).json(postWithReactions);
-  } catch (error) {
-    console.error("Error fetching reactions:", error);
-    // If there's an error with reactions, just return the post without reaction data
-    return res.status(HttpStatus.OK).json(post);
-  }
+  return res.status(HttpStatus.OK).json(postWithReactions);
 });
 
 /**

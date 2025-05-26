@@ -18,15 +18,36 @@ export class CreatePostInputDTO {
   @IsArray()
   @ArrayMaxSize(4)
   images?: string[];
+
+  @IsOptional()
+  @IsString()
+  parentId?: string; // Optional parent post ID for comments
+}
+
+export class CreateCommentInputDTO {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(240)
+  content!: string;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(4)
+  images?: string[];
+
+  @IsString()
+  @IsNotEmpty()
+  parentId!: string; // Required parent post ID for comments
 }
 
 export class PostDTO {
-  constructor(post: PostDTO) {
+  constructor(post: any) {
     this.id = post.id;
     this.authorId = post.authorId;
     this.content = post.content;
     this.images = post.images;
     this.createdAt = post.createdAt;
+    this.parentId = post.parentId || undefined;
   }
 
   id: string;
@@ -34,6 +55,7 @@ export class PostDTO {
   content: string;
   images: string[];
   createdAt: Date;
+  parentId?: string; // Parent post ID for comments (null for posts)
 }
 
 export class ExtendedPostDTO extends PostDTO {
