@@ -246,7 +246,6 @@ userRouter.delete("/", async (req: Request, res: Response) => {
  *       500:
  *         description: Server error
  */
-// New endpoint to toggle privacy settings
 userRouter.patch("/privacy", async (req: Request, res: Response) => {
   const { userId } = res.locals.context;
   const { isPrivate } = req.body as { isPrivate: boolean };
@@ -259,4 +258,145 @@ userRouter.patch("/privacy", async (req: Request, res: Response) => {
     message: "Privacy settings updated successfully",
     user: updatedUser,
   });
+});
+
+/**
+ * @swagger
+ * /api/user/{userId}/likes:
+ *   get:
+ *     summary: Get posts liked by user
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the user
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Maximum number of likes to return
+ *       - in: query
+ *         name: skip
+ *         schema:
+ *           type: integer
+ *         description: Number of likes to skip
+ *     responses:
+ *       200:
+ *         description: List of posts liked by user
+ *       401:
+ *         description: Not authorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+userRouter.get("/likes/:userId", async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const { limit, skip } = req.query as Record<string, string>;
+
+  const likes = await service.getUserLikes(userId, {
+    limit: Number(limit),
+    skip: Number(skip),
+  });
+
+  return res.status(HttpStatus.OK).json(likes);
+});
+
+/**
+ * @swagger
+ * /api/user/{userId}/retweets:
+ *   get:
+ *     summary: Get posts retweeted by user
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the user
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Maximum number of retweets to return
+ *       - in: query
+ *         name: skip
+ *         schema:
+ *           type: integer
+ *         description: Number of retweets to skip
+ *     responses:
+ *       200:
+ *         description: List of posts retweeted by user
+ *       401:
+ *         description: Not authorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+userRouter.get("/retweets/:userId", async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const { limit, skip } = req.query as Record<string, string>;
+
+  const retweets = await service.getUserRetweets(userId, {
+    limit: Number(limit),
+    skip: Number(skip),
+  });
+
+  return res.status(HttpStatus.OK).json(retweets);
+});
+
+/**
+ * @swagger
+ * /api/user/{userId}/comments:
+ *   get:
+ *     summary: Get comments made by user
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the user
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Maximum number of comments to return
+ *       - in: query
+ *         name: skip
+ *         schema:
+ *           type: integer
+ *         description: Number of comments to skip
+ *     responses:
+ *       200:
+ *         description: List of comments made by user
+ *       401:
+ *         description: Not authorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+userRouter.get("/comments/:userId", async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const { limit, skip } = req.query as Record<string, string>;
+
+  const comments = await service.getUserComments(userId, {
+    limit: Number(limit),
+    skip: Number(skip),
+  });
+
+  return res.status(HttpStatus.OK).json(comments);
 });

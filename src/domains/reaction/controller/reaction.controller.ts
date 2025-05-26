@@ -6,13 +6,15 @@ import "express-async-errors";
 import { db } from "@utils";
 
 import { ReactionRepositoryImpl } from "../repository";
+import { UserRepositoryImpl } from "@domains/user/repository";
 import { ReactionService, ReactionServiceImpl } from "../service";
 import { ReactionEnum } from "../enum/reaction.enum";
 
 export const reactionRouter = Router();
 
 const service: ReactionService = new ReactionServiceImpl(
-  new ReactionRepositoryImpl(db)
+  new ReactionRepositoryImpl(db),
+  new UserRepositoryImpl(db)
 );
 
 /**
@@ -116,6 +118,40 @@ reactionRouter.post("/:postId", async (req: Request, res: Response) => {
   return res.status(HttpStatus.CREATED).json(reaction);
 });
 
+/**
+ * @swagger
+ * /api/reaction/{reactionId}:
+ *   delete:
+ *     summary: Delete a reaction
+ *     description: Remove a specific reaction by its ID
+ *     tags: [Reactions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: reactionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the reaction to delete
+ *     responses:
+ *       200:
+ *         description: Reaction removed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Reaction removed successfully"
+ *       401:
+ *         description: Not authorized
+ *       404:
+ *         description: Reaction not found
+ *       500:
+ *         description: Server error
+ */
 reactionRouter.delete("/:reactionId", async (req: Request, res: Response) => {
   const { reactionId } = req.params;
 

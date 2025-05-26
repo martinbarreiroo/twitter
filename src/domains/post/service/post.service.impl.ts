@@ -1,12 +1,16 @@
 import { CreatePostInputDTO, CreateCommentInputDTO, PostDTO } from "../dto";
 import { PostRepository } from "../repository";
+import { UserRepository } from "@domains/user/repository";
 import { PostService } from ".";
 import { validate } from "class-validator";
 import { ForbiddenException, NotFoundException } from "@utils";
 import { CursorPagination } from "@types";
 
 export class PostServiceImpl implements PostService {
-  constructor(private readonly repository: PostRepository) {}
+  constructor(
+    private readonly repository: PostRepository,
+    private readonly userRepository: UserRepository
+  ) {}
 
   async createPost(userId: string, data: CreatePostInputDTO): Promise<PostDTO> {
     await validate(data);
@@ -25,13 +29,24 @@ export class PostServiceImpl implements PostService {
       throw new NotFoundException("parent post");
     }
 
-    return await this.repository.createComment(userId, data);
+    const comment = await this.repository.createComment(userId, data);
+
+    // Update user comment counter
+    await this.userRepository.incrementCommentsCount(userId);
+
+    return comment;
   }
 
   async deletePost(userId: string, postId: string): Promise<void> {
     const post = await this.repository.getById(postId, userId);
     if (!post) throw new NotFoundException("post");
     if (post.authorId !== userId) throw new ForbiddenException();
+
+    // If it's a comment, decrement the user's comment counter
+    if (post.parentId) {
+      await this.userRepository.decrementCommentsCount(userId);
+    }
+
     await this.repository.delete(postId);
   }
 

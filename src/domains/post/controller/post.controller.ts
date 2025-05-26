@@ -6,6 +6,7 @@ import "express-async-errors";
 import { db, BodyValidation } from "@utils";
 
 import { PostRepositoryImpl } from "../repository";
+import { UserRepositoryImpl } from "@domains/user/repository";
 import { PostService, PostServiceImpl } from "../service";
 import { CreatePostInputDTO } from "../dto";
 
@@ -65,7 +66,10 @@ import { CreatePostInputDTO } from "../dto";
 export const postRouter = Router();
 
 // Use dependency injection
-const service: PostService = new PostServiceImpl(new PostRepositoryImpl(db));
+const service: PostService = new PostServiceImpl(
+  new PostRepositoryImpl(db),
+  new UserRepositoryImpl(db)
+);
 
 /**
  * @swagger
