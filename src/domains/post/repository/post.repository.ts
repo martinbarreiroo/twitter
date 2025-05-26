@@ -1,10 +1,19 @@
 import { CursorPagination } from "@types";
-import { CreatePostInputDTO, PostDTO } from "../dto";
+import { CreatePostInputDTO, CreateCommentInputDTO, PostDTO } from "../dto";
 
 export interface PostRepository {
   create: (userId: string, data: CreatePostInputDTO) => Promise<PostDTO>;
+  createComment: (
+    userId: string,
+    data: CreateCommentInputDTO
+  ) => Promise<PostDTO>;
   getAllByDatePaginated: (
     userId: string,
+    options: CursorPagination
+  ) => Promise<PostDTO[]>;
+  getCommentsByPostId: (
+    userId: string,
+    postId: string,
     options: CursorPagination
   ) => Promise<PostDTO[]>;
   delete: (postId: string) => Promise<void>;
@@ -13,4 +22,11 @@ export interface PostRepository {
     userId: string,
     authorId: string
   ) => Promise<PostDTO[] | null>;
+  getReactionCounts: (
+    postId: string
+  ) => Promise<{ likeCount: number; retweetCount: number }>;
+  getUserReactions: (
+    postId: string,
+    userId: string
+  ) => Promise<{ hasLiked: boolean; hasRetweeted: boolean }>;
 }

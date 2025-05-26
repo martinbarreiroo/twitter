@@ -8,21 +8,6 @@ import { db } from "@utils";
 import { ReactionRepositoryImpl } from "../repository";
 import { ReactionService, ReactionServiceImpl } from "../service";
 import { ReactionEnum } from "../enum/reaction.enum";
-import { ReactionInputDTO } from "../dto";
-
-// Custom middleware to handle potential JSON formatting issues with reaction types
-const normalizeReactionBody = (req: Request, res: Response, next: Function) => {
-  if (req.body && req.body.type) {
-    // If type is not a string (like unquoted LIKE or RETWEET), convert to string
-    if (typeof req.body.type !== "string") {
-      const typeStr = String(req.body.type).toLowerCase();
-      if (typeStr === "like" || typeStr === "retweet") {
-        req.body.type = typeStr;
-      }
-    }
-  }
-  next();
-};
 
 export const reactionRouter = Router();
 
@@ -81,33 +66,12 @@ const service: ReactionService = new ReactionServiceImpl(
  * /api/reaction/{postId}:
  *   post:
  *     summary: React to a post (like or retweet) using path parameter
- *     description: Add or remove a reaction (like/retweet) to a specific post
+ *     description: Add a reaction (like/retweet) to a specific post
  *     tags: [Reactions]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: postId
- *         required: true
- *         schema:
- *           type: string
- *         description: ID of the post to react to
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/ReactionInput'
- *
- * /api/reaction:
- *   post:
- *     summary: React to a post (like or retweet) using query parameter
- *     description: Add or remove a reaction (like/retweet) to a specific post
- *     tags: [Reactions]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
  *         name: postId
  *         required: true
  *         schema:
@@ -126,14 +90,14 @@ const service: ReactionService = new ReactionServiceImpl(
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ReactionOutput'
- *       200:
- *         description: Reaction removed successfully
  *       400:
  *         description: Invalid input data
  *       401:
  *         description: Not authorized
  *       404:
  *         description: Post not found
+ *       409:
+ *         description: Reaction already exists
  *       500:
  *         description: Server error
  */
@@ -143,31 +107,12 @@ reactionRouter.post("/:postId", async (req: Request, res: Response) => {
   const { postId } = req.params; // Post to react to
   const { type } = req.body; // Type of reaction
 
-  // Validate reaction type
-  if (!type || (type !== ReactionEnum.LIKE && type !== ReactionEnum.RETWEET)) {
-    return res
-      .status(HttpStatus.BAD_REQUEST)
-      .json({ error: "Invalid reaction type. Use 'like' or 'retweet'" });
-  }
-
-  const reactionDto: ReactionInputDTO = {
-    postId,
+  const reaction = await service.createReactionWithValidation(
     userId,
-    type,
-  };
+    postId,
+    type
+  );
 
-  const reaction = await service.createReaction(reactionDto);
-
-  // If reaction is null, it means it was removed
-  if (!reaction) {
-    return res.status(HttpStatus.OK).json({
-      message: `${
-        type === ReactionEnum.LIKE ? "Like" : "Retweet"
-      } removed successfully`,
-    });
-  }
-
-  // Otherwise, it was added
   return res.status(HttpStatus.CREATED).json(reaction);
 });
 

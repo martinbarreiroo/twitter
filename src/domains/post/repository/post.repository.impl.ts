@@ -4,7 +4,7 @@ import { PrismaClient } from "@prisma/client";
 import { CursorPagination } from "@types";
 
 import { PostRepository } from ".";
-import { CreatePostInputDTO, PostDTO } from "../dto";
+import { CreatePostInputDTO, CreateCommentInputDTO, PostDTO } from "../dto";
 
 export class PostRepositoryImpl implements PostRepository {
   constructor(private readonly db: PrismaClient) {}
@@ -17,6 +17,21 @@ export class PostRepositoryImpl implements PostRepository {
       },
     });
     return new PostDTO(post);
+  }
+
+  async createComment(
+    userId: string,
+    data: CreateCommentInputDTO
+  ): Promise<PostDTO> {
+    const comment = await this.db.post.create({
+      data: {
+        authorId: userId,
+        content: data.content,
+        images: data.images || [],
+        parentId: data.parentId,
+      },
+    });
+    return new PostDTO(comment);
   }
 
   async getAllByDatePaginated(
@@ -39,6 +54,7 @@ export class PostRepositoryImpl implements PostRepository {
     // Get posts from public accounts, accounts the user follows, or the user's own posts
     const posts = await this.db.post.findMany({
       where: {
+        parentId: null, // Only get posts, not comments
         OR: [
           // Posts from public profiles
           {
@@ -149,6 +165,7 @@ export class PostRepositoryImpl implements PostRepository {
       const posts = await this.db.post.findMany({
         where: {
           authorId,
+          parentId: null, // Only get posts, not comments
         },
       });
       return posts.map((post) => new PostDTO(post));
@@ -159,6 +176,7 @@ export class PostRepositoryImpl implements PostRepository {
       const posts = await this.db.post.findMany({
         where: {
           authorId,
+          parentId: null, // Only get posts, not comments
         },
       });
       return posts.map((post) => new PostDTO(post));
@@ -182,8 +200,131 @@ export class PostRepositoryImpl implements PostRepository {
     const posts = await this.db.post.findMany({
       where: {
         authorId,
+        parentId: null, // Only get posts, not comments
       },
     });
     return posts.map((post) => new PostDTO(post));
+  }
+
+  async getCommentsByPostId(
+    userId: string,
+    postId: string,
+    options: CursorPagination
+  ): Promise<PostDTO[]> {
+    // First, check if the user can access the parent post
+    const parentPost = await this.getById(postId, userId);
+    if (!parentPost) {
+      return []; // If user can't access the parent post, return empty array
+    }
+
+    // Get comments with privacy filtering
+    const followedUsers = await this.db.follow.findMany({
+      where: {
+        followerId: userId,
+        deletedAt: null,
+      },
+      select: {
+        followedId: true,
+      },
+    });
+
+    const followedUserIds = followedUsers.map((follow) => follow.followedId);
+
+    const comments = await this.db.post.findMany({
+      where: {
+        parentId: postId,
+        OR: [
+          // Comments from public profiles
+          {
+            author: {
+              isPrivate: false,
+            },
+          },
+          // Comments from private profiles the user follows
+          {
+            authorId: {
+              in: followedUserIds,
+            },
+          },
+          // User's own comments
+          {
+            authorId: userId,
+          },
+        ],
+      },
+      cursor: options.after
+        ? { id: options.after }
+        : options.before
+        ? { id: options.before }
+        : undefined,
+      skip: options.after ?? options.before ? 1 : undefined,
+      take: options.limit
+        ? options.before
+          ? -options.limit
+          : options.limit
+        : undefined,
+      orderBy: [
+        {
+          createdAt: "desc",
+        },
+        {
+          id: "asc",
+        },
+      ],
+      include: {
+        author: true,
+      },
+    });
+
+    return comments.map((comment) => new PostDTO(comment));
+  }
+
+  async getReactionCounts(
+    postId: string
+  ): Promise<{ likeCount: number; retweetCount: number }> {
+    const likesResult = await this.db.$queryRaw`
+      SELECT COUNT(*) as count 
+      FROM "Reaction" 
+      WHERE "postId" = ${postId} AND "type" = 'LIKE'
+    `;
+    const likeCount =
+      Array.isArray(likesResult) && likesResult[0]
+        ? Number(likesResult[0].count)
+        : 0;
+
+    const retweetsResult = await this.db.$queryRaw`
+      SELECT COUNT(*) as count 
+      FROM "Reaction" 
+      WHERE "postId" = ${postId} AND "type" = 'RETWEET'
+    `;
+    const retweetCount =
+      Array.isArray(retweetsResult) && retweetsResult[0]
+        ? Number(retweetsResult[0].count)
+        : 0;
+
+    return { likeCount, retweetCount };
+  }
+
+  async getUserReactions(
+    postId: string,
+    userId: string
+  ): Promise<{ hasLiked: boolean; hasRetweeted: boolean }> {
+    const userReactionsResult = await this.db.$queryRaw`
+      SELECT "type" 
+      FROM "Reaction" 
+      WHERE "postId" = ${postId} AND "authorId" = ${userId}
+    `;
+
+    const userReactions = Array.isArray(userReactionsResult)
+      ? userReactionsResult
+      : [];
+    const hasLiked = userReactions.some(
+      (reaction: any) => reaction.type === "LIKE"
+    );
+    const hasRetweeted = userReactions.some(
+      (reaction: any) => reaction.type === "RETWEET"
+    );
+
+    return { hasLiked, hasRetweeted };
   }
 }
