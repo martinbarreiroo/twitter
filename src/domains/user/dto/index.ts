@@ -4,12 +4,18 @@ export class UserDTO {
     this.name = user.name;
     this.createdAt = user.createdAt;
     this.isPrivate = user.isPrivate || false;
+    this.likesCount = user.likesCount || 0;
+    this.retweetsCount = user.retweetsCount || 0;
+    this.commentsCount = user.commentsCount || 0;
   }
 
   id: string;
   name: string | null;
   createdAt: Date;
   isPrivate: boolean;
+  likesCount: number;
+  retweetsCount: number;
+  commentsCount: number;
 }
 
 export class ExtendedUserDTO extends UserDTO {

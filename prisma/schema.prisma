@@ -25,6 +25,11 @@ model User {
   password  String
   isPrivate Boolean @default(false)
 
+  // Counter fields for performance optimization
+  likesCount    Int @default(0)
+  retweetsCount Int @default(0)
+  commentsCount Int @default(0)
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime? // Optional value

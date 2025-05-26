@@ -9,4 +9,15 @@ export interface UserService {
     options: OffsetPagination
   ) => Promise<UserDTO[]>;
   updatePrivacy: (userId: string, isPrivate: boolean) => Promise<void>;
+
+  // New methods for user activity
+  getUserLikes: (userId: string, options: OffsetPagination) => Promise<any[]>;
+  getUserRetweets: (
+    userId: string,
+    options: OffsetPagination
+  ) => Promise<any[]>;
+  getUserComments: (
+    userId: string,
+    options: OffsetPagination
+  ) => Promise<any[]>;
 }

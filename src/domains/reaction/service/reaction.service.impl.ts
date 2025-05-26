@@ -1,5 +1,6 @@
 import { ReactionInputDTO, ReactionOutputDTO } from "../dto";
 import { ReactionRepository } from "../repository";
+import { UserRepository } from "@domains/user/repository";
 import { ReactionService } from "./reaction.service";
 import { ReactionEnum } from "../enum/reaction.enum";
 import {
@@ -9,7 +10,10 @@ import {
 } from "@utils/errors";
 
 export class ReactionServiceImpl implements ReactionService {
-  constructor(private readonly repository: ReactionRepository) {}
+  constructor(
+    private readonly repository: ReactionRepository,
+    private readonly userRepository: UserRepository
+  ) {}
 
   async createReaction(data: ReactionInputDTO): Promise<ReactionOutputDTO> {
     const response = await this.repository.findReactionByUserAndPostAndType(
@@ -23,8 +27,17 @@ export class ReactionServiceImpl implements ReactionService {
       throw new ConflictException("Reaction already exists");
     }
 
-    // If reaction doesn't exist, create it
-    return this.repository.createReaction(data);
+    // Create the reaction
+    const reaction = await this.repository.createReaction(data);
+
+    // Update user counters
+    if (data.type === ReactionEnum.LIKE) {
+      await this.userRepository.incrementLikesCount(data.userId);
+    } else if (data.type === ReactionEnum.RETWEET) {
+      await this.userRepository.incrementRetweetsCount(data.userId);
+    }
+
+    return reaction;
   }
 
   async createReactionWithValidation(
@@ -63,10 +76,24 @@ export class ReactionServiceImpl implements ReactionService {
   }
 
   async deleteReaction(id: string): Promise<boolean> {
+    // Get the reaction before deleting to know its type and user
+    const reaction = await this.repository.findReactionById(id);
+    if (!reaction) {
+      throw new NotFoundException("Reaction not found");
+    }
+
     const deleted = await this.repository.deleteReaction(id);
     if (!deleted) {
       throw new NotFoundException("Reaction not found");
     }
+
+    // Update user counters
+    if (reaction.type === ReactionEnum.LIKE) {
+      await this.userRepository.decrementLikesCount(reaction.userId);
+    } else if (reaction.type === ReactionEnum.RETWEET) {
+      await this.userRepository.decrementRetweetsCount(reaction.userId);
+    }
+
     return true;
   }
 }

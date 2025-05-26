@@ -28,4 +28,25 @@ export class UserServiceImpl implements UserService {
   async updatePrivacy(userId: string, isPrivate: boolean): Promise<void> {
     await this.repository.updatePrivacy(userId, isPrivate);
   }
+
+  async getUserLikes(
+    userId: string,
+    options: OffsetPagination
+  ): Promise<any[]> {
+    return await this.repository.getUserLikes(userId, options);
+  }
+
+  async getUserRetweets(
+    userId: string,
+    options: OffsetPagination
+  ): Promise<any[]> {
+    return await this.repository.getUserRetweets(userId, options);
+  }
+
+  async getUserComments(
+    userId: string,
+    options: OffsetPagination
+  ): Promise<any[]> {
+    return await this.repository.getUserComments(userId, options);
+  }
 }
