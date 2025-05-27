@@ -38,12 +38,18 @@ export class UserViewDTO {
     this.name = user.name;
     this.username = user.username;
     this.profilePicture = user.profilePicture;
+    this.likesCount = user.likesCount || 0;
+    this.retweetsCount = user.retweetsCount || 0;
+    this.commentsCount = user.commentsCount || 0;
   }
 
   id: string;
   name: string;
   username: string;
   profilePicture: string | null;
+  likesCount: number;
+  retweetsCount: number;
+  commentsCount: number;
 }
 
 export class ImageUploadRequestDTO {

@@ -1,11 +1,11 @@
 import { SignupInputDTO } from "@domains/auth/dto";
 import { OffsetPagination } from "@types";
-import { ExtendedUserDTO, UserDTO } from "../dto";
+import { ExtendedUserDTO, UserViewDTO } from "../dto";
 
 export interface UserRepository {
-  create: (data: SignupInputDTO) => Promise<UserDTO>;
+  create: (data: SignupInputDTO) => Promise<UserViewDTO>;
   delete: (userId: string) => Promise<void>;
-  getById: (userId: string) => Promise<UserDTO | null>;
+  getById: (userId: string) => Promise<UserViewDTO | null>;
   getByEmailOrUsername: (
     email?: string,
     username?: string

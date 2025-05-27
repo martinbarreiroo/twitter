@@ -1,14 +1,18 @@
 import { NotFoundException } from "@utils/errors";
 import { s3Service } from "@utils";
 import { OffsetPagination } from "types";
-import { UserDTO, ImageUploadRequestDTO, ImageUploadResponseDTO } from "../dto";
+import {
+  UserViewDTO,
+  ImageUploadRequestDTO,
+  ImageUploadResponseDTO,
+} from "../dto";
 import { UserRepository } from "../repository";
 import { UserService } from "./user.service";
 
 export class UserServiceImpl implements UserService {
   constructor(private readonly repository: UserRepository) {}
 
-  async getUser(userId: string): Promise<UserDTO> {
+  async getUser(userId: string): Promise<UserViewDTO> {
     const user = await this.repository.getById(userId);
     if (!user) throw new NotFoundException("user");
     return user;

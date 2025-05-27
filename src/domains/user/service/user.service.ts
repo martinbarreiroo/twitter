@@ -1,9 +1,13 @@
 import { OffsetPagination } from "@types";
-import { UserDTO, ImageUploadRequestDTO, ImageUploadResponseDTO } from "../dto";
+import {
+  UserViewDTO,
+  ImageUploadRequestDTO,
+  ImageUploadResponseDTO,
+} from "../dto";
 
 export interface UserService {
   deleteUser: (userId: string) => Promise<void>;
-  getUser: (userId: string) => Promise<UserDTO>;
+  getUser: (userId: string) => Promise<UserViewDTO>;
 
   updatePrivacy: (userId: string, isPrivate: boolean) => Promise<void>;
 

@@ -1,26 +1,26 @@
 import { SignupInputDTO } from "@domains/auth/dto";
 import { PrismaClient } from "@prisma/client";
 import { OffsetPagination } from "@types";
-import { ExtendedUserDTO, UserDTO } from "../dto";
+import { ExtendedUserDTO, UserViewDTO } from "../dto";
 import { UserRepository } from "./user.repository";
 
 export class UserRepositoryImpl implements UserRepository {
   constructor(private readonly db: PrismaClient) {}
 
-  async create(data: SignupInputDTO): Promise<UserDTO> {
+  async create(data: SignupInputDTO): Promise<UserViewDTO> {
     const user = await this.db.user.create({
       data,
     });
-    return new UserDTO(user as any);
+    return new UserViewDTO(user as any);
   }
 
-  async getById(userId: any): Promise<UserDTO | null> {
+  async getById(userId: any): Promise<UserViewDTO | null> {
     const user = await this.db.user.findUnique({
       where: {
         id: userId,
       },
     });
-    return user ? new UserDTO(user as any) : null;
+    return user ? new UserViewDTO(user as any) : null;
   }
 
   async delete(userId: any): Promise<void> {

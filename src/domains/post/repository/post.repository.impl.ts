@@ -4,7 +4,12 @@ import { PrismaClient } from "@prisma/client";
 import { CursorPagination } from "@types";
 
 import { PostRepository } from ".";
-import { CreatePostInputDTO, CreateCommentInputDTO, PostDTO } from "../dto";
+import {
+  CreatePostInputDTO,
+  CreateCommentInputDTO,
+  PostDTO,
+  ExtendedPostDTO,
+} from "../dto";
 
 export class PostRepositoryImpl implements PostRepository {
   constructor(private readonly db: PrismaClient) {}
@@ -282,25 +287,19 @@ export class PostRepositoryImpl implements PostRepository {
   async getReactionCounts(
     postId: string
   ): Promise<{ likeCount: number; retweetCount: number }> {
-    const likesResult = await this.db.$queryRaw`
-      SELECT COUNT(*) as count 
-      FROM "Reaction" 
-      WHERE "postId" = ${postId} AND "type" = 'LIKE'
-    `;
-    const likeCount =
-      Array.isArray(likesResult) && likesResult[0]
-        ? Number(likesResult[0].count)
-        : 0;
+    const likeCount = await this.db.reaction.count({
+      where: {
+        postId: postId,
+        type: "LIKE",
+      },
+    });
 
-    const retweetsResult = await this.db.$queryRaw`
-      SELECT COUNT(*) as count 
-      FROM "Reaction" 
-      WHERE "postId" = ${postId} AND "type" = 'RETWEET'
-    `;
-    const retweetCount =
-      Array.isArray(retweetsResult) && retweetsResult[0]
-        ? Number(retweetsResult[0].count)
-        : 0;
+    const retweetCount = await this.db.reaction.count({
+      where: {
+        postId: postId,
+        type: "RETWEET",
+      },
+    });
 
     return { likeCount, retweetCount };
   }
@@ -309,22 +308,125 @@ export class PostRepositoryImpl implements PostRepository {
     postId: string,
     userId: string
   ): Promise<{ hasLiked: boolean; hasRetweeted: boolean }> {
-    const userReactionsResult = await this.db.$queryRaw`
-      SELECT "type" 
-      FROM "Reaction" 
-      WHERE "postId" = ${postId} AND "authorId" = ${userId}
-    `;
+    const userReactions = await this.db.reaction.findMany({
+      where: {
+        postId: postId,
+        authorId: userId,
+      },
+      select: {
+        type: true,
+      },
+    });
 
-    const userReactions = Array.isArray(userReactionsResult)
-      ? userReactionsResult
-      : [];
-    const hasLiked = userReactions.some(
-      (reaction: any) => reaction.type === "LIKE"
-    );
+    const hasLiked = userReactions.some((reaction) => reaction.type === "LIKE");
     const hasRetweeted = userReactions.some(
-      (reaction: any) => reaction.type === "RETWEET"
+      (reaction) => reaction.type === "RETWEET"
     );
 
     return { hasLiked, hasRetweeted };
+  }
+
+  async getCommentsByPostIdWithReactions(
+    userId: string,
+    postId: string,
+    options: CursorPagination
+  ): Promise<ExtendedPostDTO[]> {
+    // First, check if the user can access the parent post
+    const parentPost = await this.getById(postId, userId);
+    if (!parentPost) {
+      return []; // If user can't access the parent post, return empty array
+    }
+
+    // Get comments with privacy filtering and include reactions
+    const followedUsers = await this.db.follow.findMany({
+      where: {
+        followerId: userId,
+        deletedAt: null,
+      },
+      select: {
+        followedId: true,
+      },
+    });
+
+    const followedUserIds = followedUsers.map((follow) => follow.followedId);
+
+    const comments = await this.db.post.findMany({
+      where: {
+        parentId: postId,
+        OR: [
+          // Comments from public profiles
+          {
+            author: {
+              isPrivate: false,
+            },
+          },
+          // Comments from private profiles the user follows
+          {
+            authorId: {
+              in: followedUserIds,
+            },
+          },
+          // User's own comments
+          {
+            authorId: userId,
+          },
+        ],
+      },
+      cursor: options.after
+        ? { id: options.after }
+        : options.before
+        ? { id: options.before }
+        : undefined,
+      skip: options.after ?? options.before ? 1 : undefined,
+      take: options.limit
+        ? options.before
+          ? -options.limit
+          : options.limit
+        : undefined,
+      orderBy: [
+        {
+          createdAt: "desc",
+        },
+        {
+          id: "asc",
+        },
+      ],
+      include: {
+        author: true,
+        reactions: true,
+        _count: {
+          select: {
+            comments: true, // Count of comments on this comment
+          },
+        },
+      },
+    });
+
+    // Transform to ExtendedPostDTO with reaction counts
+    const extendedComments = await Promise.all(
+      comments.map(async (comment) => {
+        // Get detailed reaction counts
+        const { likeCount, retweetCount } = await this.getReactionCounts(
+          comment.id
+        );
+
+        // Use the _count from the query result
+        const commentCount = comment._count.comments;
+
+        return new ExtendedPostDTO({
+          ...comment,
+          qtyLikes: likeCount,
+          qtyRetweets: retweetCount,
+          qtyComments: commentCount,
+        });
+      })
+    );
+
+    // Sort by total reactions (likes + retweets + comments) in descending order
+    return extendedComments.sort((a, b) => {
+      const totalReactionsA = a.qtyLikes + a.qtyRetweets + a.qtyComments;
+      const totalReactionsB = b.qtyLikes + b.qtyRetweets + b.qtyComments;
+      return totalReactionsB - totalReactionsA;
+    });
   }
 }

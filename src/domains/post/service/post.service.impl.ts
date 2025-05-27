@@ -2,6 +2,7 @@ import {
   CreatePostInputDTO,
   CreateCommentInputDTO,
   PostDTO,
+  ExtendedPostDTO,
   PostImageUploadRequestDTO,
   PostImageUploadResponseDTO,
 } from "../dto";
@@ -106,8 +107,24 @@ export class PostServiceImpl implements PostService {
     userId: string,
     postId: string,
     options: CursorPagination
-  ): Promise<PostDTO[]> {
-    return await this.repository.getCommentsByPostId(userId, postId, options);
+  ): Promise<ExtendedPostDTO[]> {
+    return await this.repository.getCommentsByPostIdWithReactions(
+      userId,
+      postId,
+      options
+    );
+  }
+
+  async getCommentsByPostIdWithReactions(
+    userId: string,
+    postId: string,
+    options: CursorPagination
+  ): Promise<ExtendedPostDTO[]> {
+    return await this.repository.getCommentsByPostIdWithReactions(
+      userId,
+      postId,
+      options
+    );
   }
 
   async generatePostImageUploadUrls(

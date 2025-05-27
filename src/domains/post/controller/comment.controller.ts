@@ -36,10 +36,26 @@ import { CreateCommentInputDTO } from "../dto";
  *         parentId:
  *           type: string
  *           description: Parent post ID
+ *         images:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: S3 keys for comment images
  *         createdAt:
  *           type: string
  *           format: date-time
  *           description: Creation timestamp
+ *         author:
+ *           $ref: '#/components/schemas/User'
+ *         qtyLikes:
+ *           type: integer
+ *           description: Number of likes on this comment
+ *         qtyRetweets:
+ *           type: integer
+ *           description: Number of retweets on this comment
+ *         qtyComments:
+ *           type: integer
+ *           description: Number of comments on this comment
  *     CreateCommentInput:
  *       type: object
  *       required:
@@ -94,7 +110,7 @@ const service: PostService = new PostServiceImpl(
  *         description: Cursor for pagination (after timestamp)
  *     responses:
  *       200:
- *         description: List of comments
+ *         description: List of comments sorted by total reactions (likes + retweets + comments)
  *         content:
  *           application/json:
  *             schema:
