@@ -4,6 +4,7 @@ export class UserDTO {
     this.name = user.name;
     this.createdAt = user.createdAt;
     this.isPrivate = user.isPrivate || false;
+    this.profilePicture = user.profilePicture || null;
     this.likesCount = user.likesCount || 0;
     this.retweetsCount = user.retweetsCount || 0;
     this.commentsCount = user.commentsCount || 0;
@@ -13,6 +14,7 @@ export class UserDTO {
   name: string | null;
   createdAt: Date;
   isPrivate: boolean;
+  profilePicture: string | null;
   likesCount: number;
   retweetsCount: number;
   commentsCount: number;
@@ -42,4 +44,40 @@ export class UserViewDTO {
   name: string;
   username: string;
   profilePicture: string | null;
+}
+
+export class ImageUploadRequestDTO {
+  constructor(fileExtension: string, contentType: string) {
+    this.fileExtension = fileExtension;
+    this.contentType = contentType;
+  }
+
+  fileExtension: string;
+  contentType: string;
+}
+
+export class ImageUploadResponseDTO {
+  constructor(uploadUrl: string, imageKey: string) {
+    this.uploadUrl = uploadUrl;
+    this.imageKey = imageKey;
+  }
+
+  uploadUrl: string;
+  imageKey: string;
+}
+
+export class PostImageUploadRequestDTO {
+  constructor(images: Array<{ fileExtension: string; contentType: string }>) {
+    this.images = images;
+  }
+
+  images: Array<{ fileExtension: string; contentType: string }>;
+}
+
+export class PostImageUploadResponseDTO {
+  constructor(uploads: Array<{ uploadUrl: string; imageKey: string }>) {
+    this.uploads = uploads;
+  }
+
+  uploads: Array<{ uploadUrl: string; imageKey: string }>;
 }

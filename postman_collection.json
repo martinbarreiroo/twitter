@@ -1,0 +1,315 @@
+{
+  "info": {
+    "name": "Twitter Clone S3 Integration",
+    "description": "Collection for testing S3 profile picture and post image uploads",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('jwt_token', response.token);",
+                  "    console.log('JWT token saved to environment');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"your_password\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile Picture Flow",
+      "item": [
+        {
+          "name": "1. Generate Profile Picture Upload URL",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.request.headers.add({",
+                  "    key: 'Authorization',",
+                  "    value: 'Bearer ' + pm.environment.get('jwt_token')",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('upload_url', response.uploadUrl);",
+                  "    pm.environment.set('image_key', response.imageKey);",
+                  "    console.log('Upload URL and image key saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fileExtension\": \"jpg\",\n  \"contentType\": \"image/jpeg\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/user/profile-picture/upload-url",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "profile-picture", "upload-url"]
+            }
+          }
+        },
+        {
+          "name": "2. Upload Image to S3",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "image/jpeg"
+              }
+            ],
+            "body": {
+              "mode": "file",
+              "file": {
+                "src": ""
+              }
+            },
+            "url": {
+              "raw": "{{upload_url}}",
+              "host": ["{{upload_url}}"]
+            }
+          }
+        },
+        {
+          "name": "3. Update Profile Picture in Database",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.request.headers.add({",
+                  "    key: 'Authorization',",
+                  "    value: 'Bearer ' + pm.environment.get('jwt_token')",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"profilePictureKey\": \"{{image_key}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/user/profile-picture",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "profile-picture"]
+            }
+          }
+        },
+        {
+          "name": "4. Get User Profile (Verify)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.request.headers.add({",
+                  "    key: 'Authorization',",
+                  "    value: 'Bearer ' + pm.environment.get('jwt_token')",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/user/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Post Images Flow",
+      "item": [
+        {
+          "name": "1. Create Post (to get post ID)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.request.headers.add({",
+                  "    key: 'Authorization',",
+                  "    value: 'Bearer ' + pm.environment.get('jwt_token')",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('post_id', response.id);",
+                  "    console.log('Post ID saved:', response.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Test post for image upload\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/post",
+              "host": ["{{base_url}}"],
+              "path": ["api", "post"]
+            }
+          }
+        },
+        {
+          "name": "2. Generate Post Image Upload URLs",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.request.headers.add({",
+                  "    key: 'Authorization',",
+                  "    value: 'Bearer ' + pm.environment.get('jwt_token')",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.uploads && response.uploads.length > 0) {",
+                  "        pm.environment.set('post_upload_url', response.uploads[0].uploadUrl);",
+                  "        pm.environment.set('post_image_key', response.uploads[0].imageKey);",
+                  "        console.log('Post upload URL and image key saved');",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"images\": [\n    {\n      \"fileExtension\": \"jpg\",\n      \"contentType\": \"image/jpeg\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/post/{{post_id}}/images/upload-url",
+              "host": ["{{base_url}}"],
+              "path": ["api", "post", "{{post_id}}", "images", "upload-url"]
+            }
+          }
+        },
+        {
+          "name": "3. Upload Post Image to S3",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "image/jpeg"
+              }
+            ],
+            "body": {
+              "mode": "file",
+              "file": {
+                "src": ""
+              }
+            },
+            "url": {
+              "raw": "{{post_upload_url}}",
+              "host": ["{{post_upload_url}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

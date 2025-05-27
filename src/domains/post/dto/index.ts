@@ -72,3 +72,19 @@ export class ExtendedPostDTO extends PostDTO {
   qtyLikes!: number;
   qtyRetweets!: number;
 }
+
+export class PostImageUploadRequestDTO {
+  constructor(images: Array<{ fileExtension: string; contentType: string }>) {
+    this.images = images;
+  }
+
+  images: Array<{ fileExtension: string; contentType: string }>;
+}
+
+export class PostImageUploadResponseDTO {
+  constructor(uploads: Array<{ uploadUrl: string; imageKey: string }>) {
+    this.uploads = uploads;
+  }
+
+  uploads: Array<{ uploadUrl: string; imageKey: string }>;
+}

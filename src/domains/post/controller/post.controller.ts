@@ -8,7 +8,7 @@ import { db, BodyValidation } from "@utils";
 import { PostRepositoryImpl } from "../repository";
 import { UserRepositoryImpl } from "@domains/user/repository";
 import { PostService, PostServiceImpl } from "../service";
-import { CreatePostInputDTO } from "../dto";
+import { CreatePostInputDTO, PostImageUploadRequestDTO } from "../dto";
 
 /**
  * @swagger
@@ -61,6 +61,42 @@ import { CreatePostInputDTO } from "../dto";
  *         after:
  *           type: string
  *           description: Cursor for pagination (after timestamp)
+ *     PostImageUploadRequest:
+ *       type: object
+ *       required:
+ *         - images
+ *       properties:
+ *         images:
+ *           type: array
+ *           maxItems: 4
+ *           items:
+ *             type: object
+ *             required:
+ *               - fileExtension
+ *               - contentType
+ *             properties:
+ *               fileExtension:
+ *                 type: string
+ *                 enum: [jpg, jpeg, png, gif, webp]
+ *                 description: File extension for the image
+ *               contentType:
+ *                 type: string
+ *                 enum: [image/jpeg, image/png, image/gif, image/webp]
+ *                 description: MIME content type of the image
+ *     PostImageUploadResponse:
+ *       type: object
+ *       properties:
+ *         uploads:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               uploadUrl:
+ *                 type: string
+ *                 description: Pre-signed URL for uploading the image to S3
+ *               imageKey:
+ *                 type: string
+ *                 description: S3 key for the uploaded image
  */
 
 export const postRouter = Router();
@@ -278,3 +314,54 @@ postRouter.delete("/:postId", async (req: Request, res: Response) => {
 
   return res.status(HttpStatus.OK).send(`Deleted post ${postId}`);
 });
+
+/**
+ * @swagger
+ * /api/post/{postId}/images/upload-url:
+ *   post:
+ *     summary: Generate pre-signed URLs for post image uploads
+ *     description: Get pre-signed URLs to upload images directly to S3 for a specific post
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: postId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the post to upload images for
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/PostImageUploadRequest'
+ *     responses:
+ *       200:
+ *         description: Pre-signed URLs generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PostImageUploadResponse'
+ *       400:
+ *         description: Invalid input data or unsupported file type
+ *       401:
+ *         description: Not authorized
+ *       500:
+ *         description: Server error
+ */
+postRouter.post(
+  "/:postId/images/upload-url",
+  async (req: Request, res: Response) => {
+    const { userId } = res.locals.context;
+    const { postId } = req.params;
+    const { images } = req.body;
+
+    const response = await service.generatePostImageUploadUrls(userId, postId, {
+      images,
+    });
+
+    return res.status(HttpStatus.OK).json(response);
+  }
+);

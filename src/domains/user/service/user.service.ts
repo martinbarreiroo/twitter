@@ -1,13 +1,10 @@
 import { OffsetPagination } from "@types";
-import { UserDTO } from "../dto";
+import { UserDTO, ImageUploadRequestDTO, ImageUploadResponseDTO } from "../dto";
 
 export interface UserService {
   deleteUser: (userId: string) => Promise<void>;
   getUser: (userId: string) => Promise<UserDTO>;
-  getUserRecommendations: (
-    userId: string,
-    options: OffsetPagination
-  ) => Promise<UserDTO[]>;
+
   updatePrivacy: (userId: string, isPrivate: boolean) => Promise<void>;
 
   // New methods for user activity
@@ -20,4 +17,14 @@ export interface UserService {
     userId: string,
     options: OffsetPagination
   ) => Promise<any[]>;
+
+  // S3 profile picture methods
+  generateProfilePictureUploadUrl: (
+    userId: string,
+    request: ImageUploadRequestDTO
+  ) => Promise<ImageUploadResponseDTO>;
+  updateUserProfilePicture: (
+    userId: string,
+    profilePictureKey: string
+  ) => Promise<void>;
 }

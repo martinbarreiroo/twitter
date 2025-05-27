@@ -31,21 +31,6 @@ export class UserRepositoryImpl implements UserRepository {
     });
   }
 
-  async getRecommendedUsersPaginated(
-    options: OffsetPagination
-  ): Promise<UserDTO[]> {
-    const users = await this.db.user.findMany({
-      take: options.limit ? options.limit : undefined,
-      skip: options.skip ? options.skip : undefined,
-      orderBy: [
-        {
-          id: "asc",
-        },
-      ],
-    });
-    return users.map((user: UserDTO) => new UserDTO(user));
-  }
-
   async getByEmailOrUsername(
     email?: string,
     username?: string
@@ -194,6 +179,16 @@ export class UserRepositoryImpl implements UserRepository {
     await this.db.user.update({
       where: { id: userId },
       data: { commentsCount: { decrement: 1 } },
+    });
+  }
+
+  async updateProfilePicture(
+    userId: string,
+    profilePictureKey: string
+  ): Promise<void> {
+    await this.db.user.update({
+      where: { id: userId },
+      data: { profilePicture: profilePictureKey },
     });
   }
 }

@@ -1,10 +1,17 @@
-import { CreatePostInputDTO, CreateCommentInputDTO, PostDTO } from "../dto";
+import {
+  CreatePostInputDTO,
+  CreateCommentInputDTO,
+  PostDTO,
+  PostImageUploadRequestDTO,
+  PostImageUploadResponseDTO,
+} from "../dto";
 import { PostRepository } from "../repository";
 import { UserRepository } from "@domains/user/repository";
 import { PostService } from ".";
 import { validate } from "class-validator";
 import { ForbiddenException, NotFoundException } from "@utils";
 import { CursorPagination } from "@types";
+import { s3Service } from "@utils";
 
 export class PostServiceImpl implements PostService {
   constructor(
@@ -101,5 +108,40 @@ export class PostServiceImpl implements PostService {
     options: CursorPagination
   ): Promise<PostDTO[]> {
     return await this.repository.getCommentsByPostId(userId, postId, options);
+  }
+
+  async generatePostImageUploadUrls(
+    userId: string,
+    postId: string,
+    request: PostImageUploadRequestDTO
+  ): Promise<PostImageUploadResponseDTO> {
+    // Validate all file extensions
+    for (const image of request.images) {
+      if (!s3Service.isValidImageExtension(image.fileExtension)) {
+        throw new Error(
+          `Invalid file extension: ${image.fileExtension}. Only jpg, jpeg, png, gif, and webp are allowed.`
+        );
+      }
+    }
+
+    // Generate upload URLs for each image
+    const uploads = await Promise.all(
+      request.images.map(async (image, index) => {
+        const imageKey = s3Service.generatePostImageKey(
+          userId,
+          postId,
+          index,
+          image.fileExtension
+        );
+        const uploadUrl = await s3Service.generateUploadUrl(
+          imageKey,
+          image.contentType
+        );
+
+        return { uploadUrl, imageKey };
+      })
+    );
+
+    return new PostImageUploadResponseDTO(uploads);
   }
 }
