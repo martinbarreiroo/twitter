@@ -5,3 +5,4 @@ export * from "./database";
 export * from "./validation";
 export * from "./errors";
 export * from "./swagger";
+export * from "./s3";

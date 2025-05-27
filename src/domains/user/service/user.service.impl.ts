@@ -1,6 +1,7 @@
 import { NotFoundException } from "@utils/errors";
+import { s3Service } from "@utils";
 import { OffsetPagination } from "types";
-import { UserDTO } from "../dto";
+import { UserDTO, ImageUploadRequestDTO, ImageUploadResponseDTO } from "../dto";
 import { UserRepository } from "../repository";
 import { UserService } from "./user.service";
 
@@ -11,14 +12,6 @@ export class UserServiceImpl implements UserService {
     const user = await this.repository.getById(userId);
     if (!user) throw new NotFoundException("user");
     return user;
-  }
-
-  async getUserRecommendations(
-    userId: string,
-    options: OffsetPagination
-  ): Promise<UserDTO[]> {
-    // TODO: make this return only users followed by users the original user follows
-    return await this.repository.getRecommendedUsersPaginated(options);
   }
 
   async deleteUser(userId: string): Promise<void> {
@@ -48,5 +41,38 @@ export class UserServiceImpl implements UserService {
     options: OffsetPagination
   ): Promise<any[]> {
     return await this.repository.getUserComments(userId, options);
+  }
+
+  async generateProfilePictureUploadUrl(
+    userId: string,
+    request: ImageUploadRequestDTO
+  ): Promise<ImageUploadResponseDTO> {
+    // Validate file extension
+    if (!s3Service.isValidImageExtension(request.fileExtension)) {
+      throw new Error(
+        "Invalid file extension. Only jpg, jpeg, png, gif, and webp are allowed."
+      );
+    }
+
+    // Generate unique S3 key for the profile picture
+    const imageKey = s3Service.generateProfilePictureKey(
+      userId,
+      request.fileExtension
+    );
+
+    // Generate pre-signed upload URL
+    const uploadUrl = await s3Service.generateUploadUrl(
+      imageKey,
+      request.contentType
+    );
+
+    return new ImageUploadResponseDTO(uploadUrl, imageKey);
+  }
+
+  async updateUserProfilePicture(
+    userId: string,
+    profilePictureKey: string
+  ): Promise<void> {
+    await this.repository.updateProfilePicture(userId, profilePictureKey);
   }
 }

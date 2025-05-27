@@ -1,4 +1,10 @@
-import { CreatePostInputDTO, CreateCommentInputDTO, PostDTO } from "../dto";
+import {
+  CreatePostInputDTO,
+  CreateCommentInputDTO,
+  PostDTO,
+  PostImageUploadRequestDTO,
+  PostImageUploadResponseDTO,
+} from "../dto";
 
 export interface PostService {
   createPost: (userId: string, body: CreatePostInputDTO) => Promise<PostDTO>;
@@ -19,4 +25,11 @@ export interface PostService {
     postId: string,
     options: { limit?: number; before?: string; after?: string }
   ) => Promise<PostDTO[]>;
+
+  // S3 image upload methods
+  generatePostImageUploadUrls: (
+    userId: string,
+    postId: string,
+    request: PostImageUploadRequestDTO
+  ) => Promise<PostImageUploadResponseDTO>;
 }

@@ -19,11 +19,12 @@ datasource db {
 model User {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Primary Key
 
-  username  String  @unique // Unique constraint
-  name      String? @db.VarChar(35) // Limit display name to 35 characters
-  email     String  @unique // Unique constraint
-  password  String
-  isPrivate Boolean @default(false)
+  username       String  @unique // Unique constraint
+  name           String? @db.VarChar(35) // Limit display name to 35 characters
+  email          String  @unique // Unique constraint
+  password       String
+  isPrivate      Boolean @default(false)
+  profilePicture String? // S3 key for profile picture
 
   // Counter fields for performance optimization
   likesCount    Int @default(0)
