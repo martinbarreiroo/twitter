@@ -63,6 +63,11 @@ model Post {
   images   String[]
   parentId String?  @db.Uuid // Foreign Key for comments (null for posts, postId for comments)
 
+  // Counter fields for performance optimization
+  likesCount    Int @default(0)
+  retweetsCount Int @default(0)
+  commentsCount Int @default(0)
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime? // Optional value

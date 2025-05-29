@@ -2,25 +2,27 @@ import {
   CreatePostInputDTO,
   CreateCommentInputDTO,
   PostDTO,
+  CommentDTO,
   ExtendedPostDTO,
-  PostImageUploadRequestDTO,
-  PostImageUploadResponseDTO,
 } from "../dto";
 
 export interface PostService {
   createPost: (userId: string, body: CreatePostInputDTO) => Promise<PostDTO>;
   createComment: (
     userId: string,
-    body: CreateCommentInputDTO
-  ) => Promise<PostDTO>;
+    postId: string,
+    content: CreateCommentInputDTO
+  ) => Promise<CommentDTO>;
   deletePost: (userId: string, postId: string) => Promise<void>;
-  getPost: (userId: string, postId: string) => Promise<PostDTO>;
-  getPostWithReactions: (userId: string, postId: string) => Promise<any>;
+  getPost: (userId: string, postId: string) => Promise<ExtendedPostDTO>;
   getLatestPosts: (
     userId: string,
     options: { limit?: number; before?: string; after?: string }
-  ) => Promise<PostDTO[]>;
-  getPostsByAuthor: (userId: any, authorId: string) => Promise<PostDTO[]>;
+  ) => Promise<ExtendedPostDTO[]>;
+  getPostsByAuthor: (
+    userId: any,
+    authorId: string
+  ) => Promise<ExtendedPostDTO[]>;
   getCommentsByPostId: (
     userId: string,
     postId: string,
@@ -32,11 +34,4 @@ export interface PostService {
     postId: string,
     options: { limit?: number; before?: string; after?: string }
   ) => Promise<ExtendedPostDTO[]>;
-
-  // S3 image upload methods
-  generatePostImageUploadUrls: (
-    userId: string,
-    postId: string,
-    request: PostImageUploadRequestDTO
-  ) => Promise<PostImageUploadResponseDTO>;
 }

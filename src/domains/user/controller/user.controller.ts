@@ -140,7 +140,7 @@ const service: UserService = new UserServiceImpl(new UserRepositoryImpl(db));
 userRouter.get("/me", async (req: Request, res: Response) => {
   const { userId } = res.locals.context;
 
-  const user = await service.getUser(userId);
+  const user = await service.getUserById(userId);
 
   return res.status(HttpStatus.OK).json(user);
 });
@@ -178,11 +178,67 @@ userRouter.get("/me", async (req: Request, res: Response) => {
  */
 userRouter.get("/:userId", async (req: Request, res: Response) => {
   const { userId: otherUserId } = req.params;
+  const { userId } = res.locals.context;
 
-  const user = await service.getUser(otherUserId);
+  const user = await service.getUserWithFollowInfo(userId, otherUserId);
 
   return res.status(HttpStatus.OK).json(user);
 });
+
+/**
+ * @swagger
+ * /api/user/by_username/{username}:
+ *   get:
+ *     summary: Get users by username search
+ *     description: Returns a list of users whose usernames contain the provided search term
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: username
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Username search term
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Maximum number of users to return
+ *       - in: query
+ *         name: skip
+ *         schema:
+ *           type: integer
+ *         description: Number of users to skip
+ *     responses:
+ *       200:
+ *         description: List of users matching the username search
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Not authorized
+ *       500:
+ *         description: Server error
+ */
+userRouter.get(
+  "/by_username/:username",
+  async (req: Request, res: Response) => {
+    const { username } = req.params;
+    const { limit, skip } = req.query as Record<string, string>;
+
+    const users = await service.getUsersByUsername(username, {
+      limit: Number(limit) || undefined,
+      skip: Number(skip) || undefined,
+    });
+
+    return res.status(HttpStatus.OK).json(users);
+  }
+);
 
 /**
  * @swagger
@@ -252,7 +308,7 @@ userRouter.patch("/privacy", async (req: Request, res: Response) => {
 
   await service.updatePrivacy(userId, isPrivate);
 
-  const updatedUser = await service.getUser(userId);
+  const updatedUser = await service.getUserById(userId);
 
   return res.status(HttpStatus.OK).json({
     message: "Privacy settings updated successfully",

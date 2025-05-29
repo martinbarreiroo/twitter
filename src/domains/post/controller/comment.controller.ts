@@ -1,6 +1,5 @@
 import { Request, Response, Router } from "express";
 import HttpStatus from "http-status";
-// express-async-errors is a module that handles async errors in express, don't forget import it in your new controllers
 import "express-async-errors";
 
 import { db, BodyValidation } from "@utils";
@@ -21,7 +20,7 @@ import { CreateCommentInputDTO } from "../dto";
  * @swagger
  * components:
  *   schemas:
- *     Comment:
+ *     ExtendedPost:
  *       type: object
  *       properties:
  *         id:
@@ -116,7 +115,7 @@ const service: PostService = new PostServiceImpl(
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Comment'
+ *                 $ref: '#/components/schemas/ExtendedPost'
  *       401:
  *         description: Not authorized
  *       404:
@@ -158,7 +157,7 @@ commentRouter.get("/:postId", async (req: Request, res: Response) => {
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Comment'
+ *               $ref: '#/components/schemas/Post'
  *       400:
  *         description: Invalid input data
  *       401:
@@ -169,13 +168,14 @@ commentRouter.get("/:postId", async (req: Request, res: Response) => {
  *         description: Server error
  */
 commentRouter.post(
-  "/",
+  "/:postId",
   BodyValidation(CreateCommentInputDTO),
   async (req: Request, res: Response) => {
     const { userId } = res.locals.context;
-    const data = req.body;
+    const { postId } = req.params;
+    const content = req.body;
 
-    const comment = await service.createComment(userId, data);
+    const comment = await service.createComment(userId, postId, content);
 
     return res.status(HttpStatus.CREATED).json(comment);
   }

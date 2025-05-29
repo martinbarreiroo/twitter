@@ -6,7 +6,28 @@ import {
   ArrayMaxSize,
   IsArray,
 } from "class-validator";
-import { ExtendedUserDTO } from "@domains/user/dto";
+import { UserAuthorDTO } from "@domains/user/dto";
+import { User, Post, Reaction } from "@prisma/client";
+
+type PostWithAuthor = Post & {
+  author: User;
+};
+
+type PostWithAuthorAndReactions = PostWithAuthor & {
+  author: User;
+  reactions: Reaction[];
+  comments?: Post[];
+  _count?: {
+    comments: number;
+    reactions?: number;
+  };
+  commentCount?: number;
+  likeCount?: number;
+  retweetCount?: number;
+  likesCount?: number;
+  retweetsCount?: number;
+  commentsCount?: number;
+};
 
 export class CreatePostInputDTO {
   @IsString()
@@ -29,19 +50,10 @@ export class CreateCommentInputDTO {
   @IsNotEmpty()
   @MaxLength(240)
   content!: string;
-
-  @IsOptional()
-  @IsArray()
-  @ArrayMaxSize(4)
-  images?: string[];
-
-  @IsString()
-  @IsNotEmpty()
-  parentId!: string; // Required parent post ID for comments
 }
 
 export class PostDTO {
-  constructor(post: any) {
+  constructor(post: Post) {
     this.id = post.id;
     this.authorId = post.authorId;
     this.content = post.content;
@@ -55,36 +67,54 @@ export class PostDTO {
   content: string;
   images: string[];
   createdAt: Date;
-  parentId?: string; // Parent post ID for comments (null for posts)
+  parentId?: string;
+}
+
+export class CommentDTO {
+  constructor(comment: Post) {
+    this.id = comment.id;
+    this.authorId = comment.authorId;
+    this.content = comment.content;
+    this.createdAt = comment.createdAt;
+    this.parentId = comment.parentId || undefined;
+  }
+
+  id: string;
+  authorId: string;
+  content: string;
+  createdAt: Date;
+  parentId?: string;
 }
 
 export class ExtendedPostDTO extends PostDTO {
-  constructor(post: any) {
+  constructor(post: PostWithAuthorAndReactions) {
     super(post);
-    this.author = post.author ? new ExtendedUserDTO(post.author) : post.author;
-    this.qtyComments = post.qtyComments || 0;
-    this.qtyLikes = post.qtyLikes || 0;
-    this.qtyRetweets = post.qtyRetweets || 0;
+    // Create UserAuthorDTO without followsYou field
+    this.author = new UserAuthorDTO({
+      ...post.author,
+      name: post.author.name || "", // Convert null to empty string
+    });
+    // Prioritize database counter fields over calculated values
+    this.qtyComments =
+      post.commentsCount ??
+      post.commentCount ??
+      post._count?.comments ??
+      post.comments?.length ??
+      0;
+    this.qtyLikes =
+      post.likesCount ??
+      post.likeCount ??
+      post.reactions?.filter((r) => r.type === "LIKE").length ??
+      0;
+    this.qtyRetweets =
+      post.retweetsCount ??
+      post.retweetCount ??
+      post.reactions?.filter((r) => r.type === "RETWEET").length ??
+      0;
   }
 
-  author!: ExtendedUserDTO;
+  author!: UserAuthorDTO;
   qtyComments!: number;
   qtyLikes!: number;
   qtyRetweets!: number;
-}
-
-export class PostImageUploadRequestDTO {
-  constructor(images: Array<{ fileExtension: string; contentType: string }>) {
-    this.images = images;
-  }
-
-  images: Array<{ fileExtension: string; contentType: string }>;
-}
-
-export class PostImageUploadResponseDTO {
-  constructor(uploads: Array<{ uploadUrl: string; imageKey: string }>) {
-    this.uploads = uploads;
-  }
-
-  uploads: Array<{ uploadUrl: string; imageKey: string }>;
 }

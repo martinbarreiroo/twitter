@@ -27,3 +27,28 @@ export const healthRouter = Router();
 healthRouter.get("/", (req: Request, res: Response) => {
   return res.status(HttpStatus.OK).send();
 });
+
+/**
+ * @swagger
+ * /api/health/debug:
+ *   get:
+ *     summary: Debug test endpoint
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: Debug test successful
+ */
+healthRouter.get("/debug", (req: Request, res: Response) => {
+  const message = "Debug test endpoint";
+  console.log("🐛 Debug endpoint hit - set a breakpoint here!");
+
+  // Set a breakpoint on this line to test debugging
+  const debugData = {
+    message,
+    timestamp: new Date().toISOString(),
+    nodeEnv: process.env.NODE_ENV,
+    debugPort: 9229,
+  };
+
+  return res.status(HttpStatus.OK).json(debugData);
+});

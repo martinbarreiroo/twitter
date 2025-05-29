@@ -7,7 +7,15 @@ import {
 
 export interface UserService {
   deleteUser: (userId: string) => Promise<void>;
-  getUser: (userId: string) => Promise<UserViewDTO>;
+  getUserById: (userId: string) => Promise<UserViewDTO>;
+  getUserWithFollowInfo: (
+    userId: string,
+    targetUserId: string
+  ) => Promise<UserViewDTO>;
+  getUsersByUsername: (
+    username: string,
+    options: OffsetPagination
+  ) => Promise<UserViewDTO[]>;
 
   updatePrivacy: (userId: string, isPrivate: boolean) => Promise<void>;
 
