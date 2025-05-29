@@ -1,26 +1,47 @@
 import { SignupInputDTO } from "@domains/auth/dto";
 import { PrismaClient } from "@prisma/client";
 import { OffsetPagination } from "@types";
-import { ExtendedUserDTO, UserDTO } from "../dto";
+import { ExtendedUserDTO, UserViewDTO } from "../dto";
 import { UserRepository } from "./user.repository";
+import { ExtendedPostDTO } from "@domains/post/dto";
 
 export class UserRepositoryImpl implements UserRepository {
   constructor(private readonly db: PrismaClient) {}
 
-  async create(data: SignupInputDTO): Promise<UserDTO> {
+  async create(data: SignupInputDTO): Promise<UserViewDTO> {
     const user = await this.db.user.create({
       data,
     });
-    return new UserDTO(user as any);
+    return new UserViewDTO(user as any);
   }
 
-  async getById(userId: any): Promise<UserDTO | null> {
+  async getById(userId: string): Promise<UserViewDTO | null> {
     const user = await this.db.user.findUnique({
       where: {
         id: userId,
       },
     });
-    return user ? new UserDTO(user as any) : null;
+    return user ? new UserViewDTO(user as any) : null;
+  }
+
+  async getByIdWithFollowInfo(
+    userId: any,
+    targetUserId: string
+  ): Promise<UserViewDTO | null> {
+    const user = await this.db.user.findUnique({
+      where: {
+        id: targetUserId,
+      },
+    });
+    const isFollowing = await this.isFollowingYou(userId, targetUserId);
+
+    if (user) {
+      const userViewDto = new UserViewDTO(user as any);
+      userViewDto.followsYou = isFollowing;
+      return userViewDto;
+    }
+
+    return null;
   }
 
   async delete(userId: any): Promise<void> {
@@ -50,6 +71,26 @@ export class UserRepositoryImpl implements UserRepository {
     return user ? new ExtendedUserDTO(user) : null;
   }
 
+  async getUsersByUsername(
+    username: string,
+    options: OffsetPagination
+  ): Promise<UserViewDTO[]> {
+    const users = await this.db.user.findMany({
+      where: {
+        username: {
+          contains: username,
+          mode: "insensitive",
+        },
+      },
+      take: options.limit ? options.limit : undefined,
+      skip: options.skip ? options.skip : undefined,
+      orderBy: {
+        username: "asc",
+      },
+    });
+    return users.map((user) => new UserViewDTO(user as any));
+  }
+
   async updatePrivacy(userId: string, isPrivate: boolean): Promise<void> {
     await this.db.user.update({
       where: {
@@ -64,7 +105,7 @@ export class UserRepositoryImpl implements UserRepository {
   async getUserLikes(
     userId: string,
     options: OffsetPagination
-  ): Promise<any[]> {
+  ): Promise<ExtendedPostDTO[]> {
     const likes = await this.db.reaction.findMany({
       where: {
         authorId: userId,
@@ -74,6 +115,7 @@ export class UserRepositoryImpl implements UserRepository {
         post: {
           include: {
             author: true,
+            reactions: true,
           },
         },
       },
@@ -83,13 +125,13 @@ export class UserRepositoryImpl implements UserRepository {
         createdAt: "desc",
       },
     });
-    return likes.map((like) => like.post);
+    return likes.map((like) => new ExtendedPostDTO(like.post as any));
   }
 
   async getUserRetweets(
     userId: string,
     options: OffsetPagination
-  ): Promise<any[]> {
+  ): Promise<ExtendedPostDTO[]> {
     const retweets = await this.db.reaction.findMany({
       where: {
         authorId: userId,
@@ -99,6 +141,7 @@ export class UserRepositoryImpl implements UserRepository {
         post: {
           include: {
             author: true,
+            reactions: true,
           },
         },
       },
@@ -108,13 +151,13 @@ export class UserRepositoryImpl implements UserRepository {
         createdAt: "desc",
       },
     });
-    return retweets.map((retweet) => retweet.post);
+    return retweets.map((retweet) => new ExtendedPostDTO(retweet.post as any));
   }
 
   async getUserComments(
     userId: string,
     options: OffsetPagination
-  ): Promise<any[]> {
+  ): Promise<ExtendedPostDTO[]> {
     const comments = await this.db.post.findMany({
       where: {
         authorId: userId,
@@ -137,7 +180,7 @@ export class UserRepositoryImpl implements UserRepository {
         createdAt: "desc",
       },
     });
-    return comments;
+    return comments.map((comment) => new ExtendedPostDTO(comment as any));
   }
 
   async incrementLikesCount(userId: string): Promise<void> {
@@ -190,5 +233,18 @@ export class UserRepositoryImpl implements UserRepository {
       where: { id: userId },
       data: { profilePicture: profilePictureKey },
     });
+  }
+
+  private async isFollowingYou(
+    userId: string,
+    targetUserId: string
+  ): Promise<boolean> {
+    const follow = await this.db.follow.findFirst({
+      where: {
+        followerId: userId,
+        followedId: targetUserId,
+      },
+    });
+    return !!follow;
   }
 }

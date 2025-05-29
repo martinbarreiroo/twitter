@@ -7,7 +7,7 @@
     "build": "tsc && tsc-alias",
     "prod": "yarn db:migrate && node dist/server.js",
     "dev": "yarn db:migrate && yarn db:generate && nodemon -q",
-    "dev:debug": "yarn db:migrate && yarn db:generate && nodemon -q",
+    "dev:debug": "yarn db:migrate && yarn db:generate && nodemon --config nodemon.debug.json -q",
     "format": "prettier --write .",
     "lint": "eslint --fix && pretty-quick && prisma format",
     "db:migrate": "prisma migrate deploy",

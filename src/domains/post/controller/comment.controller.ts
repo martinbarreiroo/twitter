@@ -1,6 +1,5 @@
 import { Request, Response, Router } from "express";
 import HttpStatus from "http-status";
-// express-async-errors is a module that handles async errors in express, don't forget import it in your new controllers
 import "express-async-errors";
 
 import { db, BodyValidation } from "@utils";
@@ -21,7 +20,7 @@ import { CreateCommentInputDTO } from "../dto";
  * @swagger
  * components:
  *   schemas:
- *     Comment:
+ *     ExtendedPost:
  *       type: object
  *       properties:
  *         id:
@@ -36,10 +35,26 @@ import { CreateCommentInputDTO } from "../dto";
  *         parentId:
  *           type: string
  *           description: Parent post ID
+ *         images:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: S3 keys for comment images
  *         createdAt:
  *           type: string
  *           format: date-time
  *           description: Creation timestamp
+ *         author:
+ *           $ref: '#/components/schemas/User'
+ *         qtyLikes:
+ *           type: integer
+ *           description: Number of likes on this comment
+ *         qtyRetweets:
+ *           type: integer
+ *           description: Number of retweets on this comment
+ *         qtyComments:
+ *           type: integer
+ *           description: Number of comments on this comment
  *     CreateCommentInput:
  *       type: object
  *       required:
@@ -94,13 +109,13 @@ const service: PostService = new PostServiceImpl(
  *         description: Cursor for pagination (after timestamp)
  *     responses:
  *       200:
- *         description: List of comments
+ *         description: List of comments sorted by total reactions (likes + retweets + comments)
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Comment'
+ *                 $ref: '#/components/schemas/ExtendedPost'
  *       401:
  *         description: Not authorized
  *       404:
@@ -142,7 +157,7 @@ commentRouter.get("/:postId", async (req: Request, res: Response) => {
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Comment'
+ *               $ref: '#/components/schemas/Post'
  *       400:
  *         description: Invalid input data
  *       401:
@@ -153,13 +168,14 @@ commentRouter.get("/:postId", async (req: Request, res: Response) => {
  *         description: Server error
  */
 commentRouter.post(
-  "/",
+  "/:postId",
   BodyValidation(CreateCommentInputDTO),
   async (req: Request, res: Response) => {
     const { userId } = res.locals.context;
-    const data = req.body;
+    const { postId } = req.params;
+    const content = req.body;
 
-    const comment = await service.createComment(userId, data);
+    const comment = await service.createComment(userId, postId, content);
 
     return res.status(HttpStatus.CREATED).json(comment);
   }

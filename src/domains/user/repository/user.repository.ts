@@ -1,27 +1,37 @@
 import { SignupInputDTO } from "@domains/auth/dto";
 import { OffsetPagination } from "@types";
-import { ExtendedUserDTO, UserDTO } from "../dto";
+import { ExtendedUserDTO, UserViewDTO } from "../dto";
+import { ExtendedPostDTO } from "@domains/post/dto";
 
 export interface UserRepository {
-  create: (data: SignupInputDTO) => Promise<UserDTO>;
+  create: (data: SignupInputDTO) => Promise<UserViewDTO>;
   delete: (userId: string) => Promise<void>;
-  getById: (userId: string) => Promise<UserDTO | null>;
+  getById: (userId: string) => Promise<UserViewDTO | null>;
+  getByIdWithFollowInfo: (
+    userId: string,
+    targetUserId: string
+  ) => Promise<UserViewDTO | null>;
   getByEmailOrUsername: (
     email?: string,
     username?: string
   ) => Promise<ExtendedUserDTO | null>;
+  getUsersByUsername: (
+    username: string,
+    options: OffsetPagination
+  ) => Promise<UserViewDTO[]>;
   updatePrivacy: (userId: string, isPrivate: boolean) => Promise<void>;
-
-  // New methods for user activity queries
-  getUserLikes: (userId: string, options: OffsetPagination) => Promise<any[]>;
+  getUserLikes: (
+    userId: string,
+    options: OffsetPagination
+  ) => Promise<ExtendedPostDTO[]>;
   getUserRetweets: (
     userId: string,
     options: OffsetPagination
-  ) => Promise<any[]>;
+  ) => Promise<ExtendedPostDTO[]>;
   getUserComments: (
     userId: string,
     options: OffsetPagination
-  ) => Promise<any[]>;
+  ) => Promise<ExtendedPostDTO[]>;
 
   // Counter update methods
   incrementLikesCount: (userId: string) => Promise<void>;

@@ -8,7 +8,7 @@ import { db, BodyValidation } from "@utils";
 import { PostRepositoryImpl } from "../repository";
 import { UserRepositoryImpl } from "@domains/user/repository";
 import { PostService, PostServiceImpl } from "../service";
-import { CreatePostInputDTO, PostImageUploadRequestDTO } from "../dto";
+import { CreatePostInputDTO } from "../dto";
 
 /**
  * @swagger
@@ -41,6 +41,41 @@ import { CreatePostInputDTO, PostImageUploadRequestDTO } from "../dto";
  *           type: string
  *           format: date-time
  *           description: Last update timestamp
+ *     ExtendedPost:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: Post ID
+ *         content:
+ *           type: string
+ *           description: Post content
+ *         authorId:
+ *           type: string
+ *           description: Author ID
+ *         parentId:
+ *           type: string
+ *           description: Parent post ID (for comments)
+ *         images:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: S3 keys for post images
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: Creation timestamp
+ *         author:
+ *           $ref: '#/components/schemas/User'
+ *         qtyLikes:
+ *           type: integer
+ *           description: Number of likes on this post
+ *         qtyRetweets:
+ *           type: integer
+ *           description: Number of retweets on this post
+ *         qtyComments:
+ *           type: integer
+ *           description: Number of comments on this post
  *     CreatePostInput:
  *       type: object
  *       required:
@@ -111,7 +146,7 @@ const service: PostService = new PostServiceImpl(
  * @swagger
  * /api/post:
  *   get:
- *     summary: Get latest posts
+ *     summary: Get latest posts with reaction counts
  *     tags: [Posts]
  *     security:
  *       - bearerAuth: []
@@ -133,13 +168,13 @@ const service: PostService = new PostServiceImpl(
  *         description: Cursor for pagination (after timestamp)
  *     responses:
  *       200:
- *         description: List of posts
+ *         description: List of posts with reaction counts and author information
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Post'
+ *                 $ref: '#/components/schemas/ExtendedPost'
  *       401:
  *         description: Not authorized
  *       500:
@@ -163,7 +198,7 @@ postRouter.get("/", async (req: Request, res: Response) => {
  * @swagger
  * /api/post/by_user/{userId}:
  *   get:
- *     summary: Get posts by a specific user
+ *     summary: Get posts by a specific user with reaction counts
  *     tags: [Posts]
  *     security:
  *       - bearerAuth: []
@@ -176,13 +211,13 @@ postRouter.get("/", async (req: Request, res: Response) => {
  *         description: ID of the user whose posts to fetch
  *     responses:
  *       200:
- *         description: List of posts by the specified user
+ *         description: List of posts by the specified user with reaction counts and author information
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Post'
+ *                 $ref: '#/components/schemas/ExtendedPost'
  *       401:
  *         description: Not authorized
  *       404:
@@ -233,7 +268,7 @@ postRouter.get("/:postId", async (req: Request, res: Response) => {
   const { userId } = res.locals.context;
   const { postId } = req.params;
 
-  const postWithReactions = await service.getPostWithReactions(userId, postId);
+  const postWithReactions = await service.getPost(userId, postId);
 
   return res.status(HttpStatus.OK).json(postWithReactions);
 });
@@ -314,54 +349,3 @@ postRouter.delete("/:postId", async (req: Request, res: Response) => {
 
   return res.status(HttpStatus.OK).send(`Deleted post ${postId}`);
 });
-
-/**
- * @swagger
- * /api/post/{postId}/images/upload-url:
- *   post:
- *     summary: Generate pre-signed URLs for post image uploads
- *     description: Get pre-signed URLs to upload images directly to S3 for a specific post
- *     tags: [Posts]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: postId
- *         schema:
- *           type: string
- *         required: true
- *         description: ID of the post to upload images for
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/PostImageUploadRequest'
- *     responses:
- *       200:
- *         description: Pre-signed URLs generated successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/PostImageUploadResponse'
- *       400:
- *         description: Invalid input data or unsupported file type
- *       401:
- *         description: Not authorized
- *       500:
- *         description: Server error
- */
-postRouter.post(
-  "/:postId/images/upload-url",
-  async (req: Request, res: Response) => {
-    const { userId } = res.locals.context;
-    const { postId } = req.params;
-    const { images } = req.body;
-
-    const response = await service.generatePostImageUploadUrls(userId, postId, {
-      images,
-    });
-
-    return res.status(HttpStatus.OK).json(response);
-  }
-);

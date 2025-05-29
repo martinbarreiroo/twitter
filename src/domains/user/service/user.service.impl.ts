@@ -1,17 +1,38 @@
 import { NotFoundException } from "@utils/errors";
 import { s3Service } from "@utils";
-import { OffsetPagination } from "types";
-import { UserDTO, ImageUploadRequestDTO, ImageUploadResponseDTO } from "../dto";
+import { OffsetPagination } from "@types";
+import {
+  UserViewDTO,
+  ImageUploadRequestDTO,
+  ImageUploadResponseDTO,
+} from "../dto";
 import { UserRepository } from "../repository";
 import { UserService } from "./user.service";
 
 export class UserServiceImpl implements UserService {
   constructor(private readonly repository: UserRepository) {}
 
-  async getUser(userId: string): Promise<UserDTO> {
-    const user = await this.repository.getById(userId);
+  async getUserById(userId: string): Promise<UserViewDTO> {
+    const user: UserViewDTO | null = await this.repository.getById(userId);
     if (!user) throw new NotFoundException("user");
     return user;
+  }
+
+  async getUserWithFollowInfo(
+    userId: string,
+    targetUserId: string
+  ): Promise<UserViewDTO> {
+    const user: UserViewDTO | null =
+      await this.repository.getByIdWithFollowInfo(userId, targetUserId);
+    if (!user) throw new NotFoundException("user");
+    return user;
+  }
+
+  async getUsersByUsername(
+    username: string,
+    options: OffsetPagination
+  ): Promise<UserViewDTO[]> {
+    return await this.repository.getUsersByUsername(username, options);
   }
 
   async deleteUser(userId: string): Promise<void> {

@@ -7,6 +7,7 @@ import { db } from "@utils";
 
 import { ReactionRepositoryImpl } from "../repository";
 import { UserRepositoryImpl } from "@domains/user/repository";
+import { PostRepositoryImpl } from "@domains/post/repository";
 import { ReactionService, ReactionServiceImpl } from "../service";
 import { ReactionEnum } from "../enum/reaction.enum";
 
@@ -14,7 +15,8 @@ export const reactionRouter = Router();
 
 const service: ReactionService = new ReactionServiceImpl(
   new ReactionRepositoryImpl(db),
-  new UserRepositoryImpl(db)
+  new UserRepositoryImpl(db),
+  new PostRepositoryImpl(db)
 );
 
 /**

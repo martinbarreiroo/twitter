@@ -1,6 +1,7 @@
 import { ReactionInputDTO, ReactionOutputDTO } from "../dto";
 import { ReactionRepository } from "../repository";
 import { UserRepository } from "@domains/user/repository";
+import { PostRepository } from "@domains/post/repository";
 import { ReactionService } from "./reaction.service";
 import { ReactionEnum } from "../enum/reaction.enum";
 import {
@@ -12,7 +13,8 @@ import {
 export class ReactionServiceImpl implements ReactionService {
   constructor(
     private readonly repository: ReactionRepository,
-    private readonly userRepository: UserRepository
+    private readonly userRepository: UserRepository,
+    private readonly postRepository: PostRepository
   ) {}
 
   async createReaction(data: ReactionInputDTO): Promise<ReactionOutputDTO> {
@@ -33,8 +35,10 @@ export class ReactionServiceImpl implements ReactionService {
     // Update user counters
     if (data.type === ReactionEnum.LIKE) {
       await this.userRepository.incrementLikesCount(data.userId);
+      await this.postRepository.incrementLikesCount(data.postId);
     } else if (data.type === ReactionEnum.RETWEET) {
       await this.userRepository.incrementRetweetsCount(data.userId);
+      await this.postRepository.incrementRetweetsCount(data.postId);
     }
 
     return reaction;
@@ -90,8 +94,10 @@ export class ReactionServiceImpl implements ReactionService {
     // Update user counters
     if (reaction.type === ReactionEnum.LIKE) {
       await this.userRepository.decrementLikesCount(reaction.userId);
+      await this.postRepository.decrementLikesCount(reaction.postId);
     } else if (reaction.type === ReactionEnum.RETWEET) {
       await this.userRepository.decrementRetweetsCount(reaction.userId);
+      await this.postRepository.decrementRetweetsCount(reaction.postId);
     }
 
     return true;
