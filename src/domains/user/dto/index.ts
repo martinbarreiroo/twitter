@@ -42,6 +42,7 @@ export class UserViewDTO {
     this.retweetsCount = user.retweetsCount || 0;
     this.commentsCount = user.commentsCount || 0;
     this.followsYou = user.followsYou || false;
+    this.isPrivate = user.isPrivate || false;
   }
 
   id: string;
@@ -52,6 +53,7 @@ export class UserViewDTO {
   retweetsCount: number;
   commentsCount: number;
   followsYou: boolean;
+  isPrivate: boolean;
 }
 
 export class UserAuthorDTO {
