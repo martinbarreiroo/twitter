@@ -11,14 +11,14 @@ RUN apt-get update && apt-get install -y \
 
 # Copy package files and install dependencies
 COPY package*.json ./
-RUN npm ci
+RUN yarn install --frozen-lockfile
 
 # Copy source code and Prisma schema
 COPY . .
 
 # Generate Prisma client and build the application
 RUN npx prisma generate
-RUN npm run build
+RUN yarn build
 
 # Stage 2: Run the application
 FROM node:20-slim AS runner
@@ -36,10 +36,10 @@ ENV NODE_ENV=production
 
 # Copy package files and install production dependencies
 COPY package*.json ./
-RUN npm ci --only=production
+RUN yarn install --production --frozen-lockfile
 
 # Install Prisma CLI for migrations
-RUN npm install prisma
+RUN yarn add prisma
 
 # Copy the built application from the builder stage
 COPY --from=builder /app/dist ./dist
