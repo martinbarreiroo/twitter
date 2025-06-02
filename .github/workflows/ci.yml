@@ -28,5 +28,8 @@ jobs:
       - name: Check formatting
         run: npm run format
 
+      - name: Run tests
+        run: npm test
+
       - name: Build project
         run: npm run build

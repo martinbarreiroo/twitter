@@ -1,46 +1,58 @@
-# Install dependencies
-FROM node:18-alpine AS deps
+# Stage 1: Build the application
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
-COPY package.json ./
-COPY yarn.lock ./
+# Install OpenSSL and other dependencies required by Prisma
+RUN apt-get update && apt-get install -y \
+    openssl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN yarn install --frozen-lockfile
+# Copy package files and install dependencies
+COPY package*.json ./
+RUN npm ci
 
-# Build source code
-FROM node:18-alpine AS builder
-
-WORKDIR /app
-
-COPY --from=deps /app/node_modules ./node_modules
+# Copy source code and Prisma schema
 COPY . .
 
-RUN yarn db:generate
-RUN yarn build
+# Generate Prisma client and build the application
+RUN npx prisma generate
+RUN npm run build
 
-# Production runtime
-FROM node:18-alpine AS runner
+# Stage 2: Run the application
+FROM node:20-slim AS runner
 
 WORKDIR /app
 
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/prisma ./prisma
+# Install OpenSSL and other dependencies required by Prisma
+RUN apt-get update && apt-get install -y \
+    openssl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set NODE_ENV to production
+ENV NODE_ENV=production
+
+# Copy package files and install production dependencies
+COPY package*.json ./
+RUN npm ci --only=production
+
+# Install Prisma CLI for migrations
+RUN npm install prisma
+
+# Copy the built application from the builder stage
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
-EXPOSE 8080
+# Copy Prisma files for migrations
+COPY --from=builder /app/prisma ./prisma
 
-CMD yarn prod
+# Copy any additional necessary files (if needed)
+# COPY --from=builder /app/tsconfig.json ./
 
-# Development runtime
-FROM node:18-alpine AS dev
+# Expose the API port
+EXPOSE 3000
 
-WORKDIR /app
-
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/package.json ./
-COPY nodemon.json ./nodemon.json
-COPY tsconfig.json ./tsconfig.json
-COPY . .
-
-CMD yarn dev
+# Start the application (run migrations first, then start server)
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"] 
