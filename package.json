@@ -23,6 +23,7 @@
     "@aws-sdk/client-s3": "^3.817.0",
     "@aws-sdk/s3-request-presigner": "^3.817.0",
     "@prisma/client": "^4.9.0",
+    "prisma": "^4.9.0",
     "@types/socket.io": "^3.0.1",
     "bcrypt": "^5.1.0",
     "class-transformer": "^0.5.1",
