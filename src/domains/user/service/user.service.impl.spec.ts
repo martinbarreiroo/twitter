@@ -1,9 +1,9 @@
-import { UserServiceImpl } from "./user.service.impl";
-import { UserRepository } from "../repository";
+import { CursorPagination } from "@types";
 import { s3Service } from "@utils";
 import { NotFoundException } from "@utils/errors";
-import { OffsetPagination } from "@types";
-import { UserViewDTO, ImageUploadRequestDTO } from "../dto";
+import { ImageUploadRequestDTO, UserViewDTO } from "../dto";
+import { UserRepository } from "../repository";
+import { UserServiceImpl } from "./user.service.impl";
 
 // Mock the utils/errors module specifically
 jest.mock("@utils/errors", () => ({
@@ -125,7 +125,7 @@ describe("UserServiceImpl", () => {
   describe("getUsersByUsername", () => {
     it("should return users matching username", async () => {
       const username = "test";
-      const options: OffsetPagination = { limit: 10, skip: 0 };
+      const options: CursorPagination = { limit: 10, after: "user-0" };
       const mockUsers: UserViewDTO[] = [
         {
           id: "user-1",

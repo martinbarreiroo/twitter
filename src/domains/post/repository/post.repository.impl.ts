@@ -5,11 +5,11 @@ import { CursorPagination } from "@types";
 
 import { PostRepository } from ".";
 import {
-  CreatePostInputDTO,
-  CreateCommentInputDTO,
-  PostDTO,
   CommentDTO,
+  CreateCommentInputDTO,
+  CreatePostInputDTO,
   ExtendedPostDTO,
+  PostDTO,
 } from "../dto";
 
 export class PostRepositoryImpl implements PostRepository {

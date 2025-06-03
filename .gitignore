@@ -14,3 +14,6 @@ pnpm-lock.yaml
 yarn.lock
 *.tgz
 tsconfig.tsbuildinfo
+copilot-instructions.md
+.editorconfig
+.eslintrc.json
