@@ -1,6 +1,6 @@
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
-import { Express, RequestHandler } from "express";
+import { Express } from "express";
 
 // Swagger definition
 const swaggerDefinition = {
@@ -53,10 +53,12 @@ const swaggerSpec = swaggerJSDoc(options);
 
 // Function to setup our docs
 export const setupSwagger = (app: Express) => {
-  // Route for swagger docs - using separate calls to avoid type conflicts
-  const serveStatic = swaggerUi.serve as RequestHandler[];
-  app.use("/api-docs", ...serveStatic);
-  app.use("/api-docs", swaggerUi.setup(swaggerSpec));
+  // Route for swagger docs - using any to avoid type conflicts between packages
+  app.use(
+    "/api-docs",
+    ...(swaggerUi.serve as any),
+    swaggerUi.setup(swaggerSpec)
+  );
 
   // Route to get the swagger specs as JSON
   app.get("/swagger.json", (req, res) => {
