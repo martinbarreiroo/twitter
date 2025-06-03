@@ -26,7 +26,7 @@ const swaggerDefinition = {
       description: "Development server",
     },
     {
-      url: "https://twitter-latest-m355.onrender.com/api-docs/#/",
+      url: "https://twitter-latest-m355.onrender.com",
       description: "Production server",
     },
   ],
