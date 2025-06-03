@@ -1,6 +1,7 @@
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import { Express } from "express";
+import { url } from "inspector";
 
 // Swagger definition
 const swaggerDefinition = {
@@ -23,6 +24,10 @@ const swaggerDefinition = {
     {
       url: "http://localhost:8080",
       description: "Development server",
+    },
+    {
+      url: "https://twitter-latest-m355.onrender.com/api-docs/#/",
+      description: "Production server",
     },
   ],
   components: {
