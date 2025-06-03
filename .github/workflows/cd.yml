@@ -26,3 +26,7 @@ jobs:
       - name: Push Image to GHCR
         run: |
           docker push ghcr.io/${{ github.repository_owner }}/twitter:latest
+
+      - name: Trigger Render Deploy Hook
+        run: |
+          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
