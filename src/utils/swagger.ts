@@ -1,7 +1,29 @@
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import { Express } from "express";
-import { url } from "inspector";
+
+// Get the current environment and port
+const getServerConfig = () => {
+  const isDevelopment = process.env.NODE_ENV !== "production";
+  const port = process.env.PORT || "8080";
+
+  if (isDevelopment) {
+    return [
+      {
+        url: `http://localhost:${port}`,
+        description: "Development server",
+      },
+    ];
+  } else {
+    // Production environment (Render)
+    return [
+      {
+        url: "https://twitter-latest-m355.onrender.com",
+        description: "Production server",
+      },
+    ];
+  }
+};
 
 // Swagger definition
 const swaggerDefinition = {
@@ -20,16 +42,7 @@ const swaggerDefinition = {
       email: "support@twitter.com",
     },
   },
-  servers: [
-    {
-      url: "http://localhost:8080",
-      description: "Development server",
-    },
-    {
-      url: "https://twitter-latest-m355.onrender.com",
-      description: "Production server",
-    },
-  ],
+  servers: getServerConfig(),
   components: {
     securitySchemes: {
       bearerAuth: {

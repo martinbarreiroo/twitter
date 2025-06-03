@@ -50,8 +50,13 @@ app.use(ErrorHandling);
 
 httpServer.listen(Constants.PORT, () => {
   Logger.info(`Server listening on port ${Constants.PORT}`);
-  Logger.info(
-    `Swagger documentation available at http://localhost:${Constants.PORT}/api-docs`
-  );
+
+  // Environment-aware Swagger documentation URL
+  const isDevelopment = Constants.NODE_ENV !== NodeEnv.PROD;
+  const swaggerUrl = isDevelopment
+    ? `http://localhost:${Constants.PORT}/api-docs`
+    : "https://twitter-latest-m355.onrender.com/api-docs";
+
+  Logger.info(`Swagger documentation available at ${swaggerUrl}`);
   Logger.info(`Socket.IO server ready for real-time chat connections`);
 });
