@@ -53,8 +53,12 @@ const swaggerSpec = swaggerJSDoc(options);
 
 // Function to setup our docs
 export const setupSwagger = (app: Express) => {
-  // Route for swagger docs
-  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  // Route for swagger docs - using any to avoid type conflicts between packages
+  app.use(
+    "/api-docs",
+    ...(swaggerUi.serve as any),
+    swaggerUi.setup(swaggerSpec)
+  );
 
   // Route to get the swagger specs as JSON
   app.get("/swagger.json", (req, res) => {

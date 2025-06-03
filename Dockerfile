@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
 
 # Copy package files and install dependencies
 COPY package*.json ./
-RUN yarn install --frozen-lockfile
+RUN yarn install
 
 # Copy source code and Prisma schema
 COPY . .
@@ -36,7 +36,7 @@ ENV NODE_ENV=production
 
 # Copy package files and install production dependencies
 COPY package*.json ./
-RUN yarn install --production --frozen-lockfile
+RUN yarn install --production
 
 # Install Prisma CLI for migrations
 RUN yarn add prisma
