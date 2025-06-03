@@ -36,7 +36,7 @@ ENV NODE_ENV=production
 
 # Copy package files and install production dependencies
 COPY package*.json ./
-RUN yarn install --production --frozen-lockfile
+RUN yarn install --production
 
 # Install Prisma CLI for migrations
 RUN yarn add prisma
