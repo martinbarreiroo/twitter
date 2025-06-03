@@ -48,6 +48,9 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 # Copy Prisma files for migrations
 COPY --from=builder /app/prisma ./prisma
 
+# Copy source files for Swagger documentation (JSDoc comments are only in .ts files)
+COPY --from=builder /app/src ./src
+
 # Copy any additional necessary files (if needed)
 # COPY --from=builder /app/tsconfig.json ./
 

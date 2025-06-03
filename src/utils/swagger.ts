@@ -63,6 +63,7 @@ const swaggerDefinition = {
 const options = {
   swaggerDefinition,
   // Paths to files containing OpenAPI definitions
+  // Always use TypeScript source files since JSDoc comments are stripped from compiled JS
   apis: ["./src/domains/*/controller/*.ts"],
 };
 
