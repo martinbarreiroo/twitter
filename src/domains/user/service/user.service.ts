@@ -1,8 +1,8 @@
-import { OffsetPagination } from "@types";
+import { CursorPagination, OffsetPagination } from "@types";
 import {
-  UserViewDTO,
   ImageUploadRequestDTO,
   ImageUploadResponseDTO,
+  UserViewDTO,
 } from "../dto";
 
 export interface UserService {
@@ -14,7 +14,7 @@ export interface UserService {
   ) => Promise<UserViewDTO>;
   getUsersByUsername: (
     username: string,
-    options: OffsetPagination
+    options: CursorPagination
   ) => Promise<UserViewDTO[]>;
 
   updatePrivacy: (userId: string, isPrivate: boolean) => Promise<void>;

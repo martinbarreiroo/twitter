@@ -1,10 +1,10 @@
-import { NotFoundException } from "@utils/errors";
+import { CursorPagination, OffsetPagination } from "@types";
 import { s3Service } from "@utils";
-import { OffsetPagination } from "@types";
+import { NotFoundException } from "@utils/errors";
 import {
-  UserViewDTO,
   ImageUploadRequestDTO,
   ImageUploadResponseDTO,
+  UserViewDTO,
 } from "../dto";
 import { UserRepository } from "../repository";
 import { UserService } from "./user.service";
@@ -30,7 +30,7 @@ export class UserServiceImpl implements UserService {
 
   async getUsersByUsername(
     username: string,
-    options: OffsetPagination
+    options: CursorPagination
   ): Promise<UserViewDTO[]> {
     return await this.repository.getUsersByUsername(username, options);
   }

@@ -1,9 +1,9 @@
 import { SignupInputDTO } from "@domains/auth/dto";
+import { ExtendedPostDTO } from "@domains/post/dto";
 import { PrismaClient } from "@prisma/client";
-import { OffsetPagination } from "@types";
+import { CursorPagination, OffsetPagination } from "@types";
 import { ExtendedUserDTO, UserViewDTO } from "../dto";
 import { UserRepository } from "./user.repository";
-import { ExtendedPostDTO } from "@domains/post/dto";
 
 export class UserRepositoryImpl implements UserRepository {
   constructor(private readonly db: PrismaClient) {}
@@ -73,21 +73,45 @@ export class UserRepositoryImpl implements UserRepository {
 
   async getUsersByUsername(
     username: string,
-    options: OffsetPagination
+    options: CursorPagination
   ): Promise<UserViewDTO[]> {
+    const whereClause: any = {
+      username: {
+        contains: username,
+        mode: "insensitive",
+      },
+    };
+
+    // Add cursor condition if provided
+    if (options.after) {
+      whereClause.id = {
+        gt: options.after,
+      };
+    } else if (options.before) {
+      whereClause.id = {
+        lt: options.before,
+      };
+    }
+
     const users = await this.db.user.findMany({
-      where: {
-        username: {
-          contains: username,
-          mode: "insensitive",
+      where: whereClause,
+      take: options.limit ? options.limit + 1 : undefined, // Take one extra to check if there are more results
+      orderBy: [
+        {
+          username: "asc",
         },
-      },
-      take: options.limit ? options.limit : undefined,
-      skip: options.skip ? options.skip : undefined,
-      orderBy: {
-        username: "asc",
-      },
+        {
+          id: "asc", // Secondary sort by ID for consistent pagination
+        },
+      ],
     });
+
+    // Check if there are more results and remove the extra item
+    const hasMore = options.limit && users.length > options.limit;
+    if (hasMore) {
+      users.pop();
+    }
+
     return users.map((user) => new UserViewDTO(user as any));
   }
 

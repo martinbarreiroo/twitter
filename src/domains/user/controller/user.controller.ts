@@ -7,7 +7,6 @@ import { db } from "@utils";
 
 import { UserRepositoryImpl } from "../repository";
 import { UserService, UserServiceImpl } from "../service";
-import { ImageUploadRequestDTO } from "../dto";
 
 /**
  * @swagger
@@ -73,10 +72,15 @@ import { ImageUploadRequestDTO } from "../dto";
  *       properties:
  *         limit:
  *           type: integer
- *           description: Maximum number of users to return
- *         skip:
- *           type: integer
- *           description: Number of users to skip
+ *           minimum: 1
+ *           maximum: 100
+ *           description: Maximum number of users to return (default 20, max 100)
+ *         after:
+ *           type: string
+ *           description: User ID to paginate after (for forward pagination)
+ *         before:
+ *           type: string
+ *           description: User ID to paginate before (for backward pagination)
  *     ImageUploadRequest:
  *       type: object
  *       required:
@@ -190,7 +194,7 @@ userRouter.get("/:userId", async (req: Request, res: Response) => {
  * /api/user/by_username/{username}:
  *   get:
  *     summary: Get users by username search
- *     description: Returns a list of users whose usernames contain the provided search term
+ *     description: Returns a list of users whose usernames contain the provided search term using cursor-based pagination
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -205,12 +209,19 @@ userRouter.get("/:userId", async (req: Request, res: Response) => {
  *         name: limit
  *         schema:
  *           type: integer
- *         description: Maximum number of users to return
+ *           minimum: 1
+ *           maximum: 100
+ *         description: Maximum number of users to return (default 20)
  *       - in: query
- *         name: skip
+ *         name: after
  *         schema:
- *           type: integer
- *         description: Number of users to skip
+ *           type: string
+ *         description: User ID to paginate after (for forward pagination)
+ *       - in: query
+ *         name: before
+ *         schema:
+ *           type: string
+ *         description: User ID to paginate before (for backward pagination)
  *     responses:
  *       200:
  *         description: List of users matching the username search
@@ -229,11 +240,12 @@ userRouter.get(
   "/by_username/:username",
   async (req: Request, res: Response) => {
     const { username } = req.params;
-    const { limit, skip } = req.query as Record<string, string>;
+    const { limit, after, before } = req.query as Record<string, string>;
 
     const users = await service.getUsersByUsername(username, {
-      limit: Number(limit) || undefined,
-      skip: Number(skip) || undefined,
+      limit: limit ? Math.min(Number(limit), 100) : 20, // Default to 20, max 100
+      after,
+      before,
     });
 
     return res.status(HttpStatus.OK).json(users);
