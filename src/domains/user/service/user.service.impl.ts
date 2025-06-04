@@ -30,9 +30,10 @@ export class UserServiceImpl implements UserService {
 
   async getUsersByUsername(
     username: string,
-    options: CursorPagination
+    options: CursorPagination,
+    userId?: string
   ): Promise<UserViewDTO[]> {
-    return await this.repository.getUsersByUsername(username, options);
+    return await this.repository.getUsersByUsername(username, options, userId);
   }
 
   async deleteUser(userId: string): Promise<void> {

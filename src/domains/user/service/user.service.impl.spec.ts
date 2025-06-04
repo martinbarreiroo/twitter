@@ -157,7 +157,8 @@ describe("UserServiceImpl", () => {
 
       expect(mockUserRepository.getUsersByUsername).toHaveBeenCalledWith(
         username,
-        options
+        options,
+        undefined
       );
       expect(result).toEqual(mockUsers);
     });
