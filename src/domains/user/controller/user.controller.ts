@@ -241,12 +241,17 @@ userRouter.get(
   async (req: Request, res: Response) => {
     const { username } = req.params;
     const { limit, after, before } = req.query as Record<string, string>;
+    const { userId } = res.locals.context;
 
-    const users = await service.getUsersByUsername(username, {
-      limit: limit ? Math.min(Number(limit), 100) : 20, // Default to 20, max 100
-      after,
-      before,
-    });
+    const users = await service.getUsersByUsername(
+      username,
+      {
+        limit: limit ? Math.min(Number(limit), 100) : 20, // Default to 20, max 100
+        after,
+        before,
+      },
+      userId
+    );
 
     return res.status(HttpStatus.OK).json(users);
   }

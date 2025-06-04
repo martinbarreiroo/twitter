@@ -17,7 +17,8 @@ export interface UserRepository {
   ) => Promise<ExtendedUserDTO | null>;
   getUsersByUsername: (
     username: string,
-    options: CursorPagination
+    options: CursorPagination,
+    userId?: string
   ) => Promise<UserViewDTO[]>;
   updatePrivacy: (userId: string, isPrivate: boolean) => Promise<void>;
   getUserLikes: (

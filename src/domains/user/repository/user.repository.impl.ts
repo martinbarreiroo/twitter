@@ -73,7 +73,8 @@ export class UserRepositoryImpl implements UserRepository {
 
   async getUsersByUsername(
     username: string,
-    options: CursorPagination
+    options: CursorPagination,
+    userId?: string
   ): Promise<UserViewDTO[]> {
     const whereClause: any = {
       username: {
@@ -112,7 +113,21 @@ export class UserRepositoryImpl implements UserRepository {
       users.pop();
     }
 
-    return users.map((user) => new UserViewDTO(user as any));
+    // Convert to UserViewDTO and check follow relationships if userId is provided
+    const userViewDTOs = await Promise.all(
+      users.map(async (user) => {
+        const userViewDto = new UserViewDTO(user as any);
+
+        // Check follow relationship if userId is provided
+        if (userId && user.id !== userId) {
+          userViewDto.followsYou = await this.isFollowingYou(user.id, userId);
+        }
+
+        return userViewDto;
+      })
+    );
+
+    return userViewDTOs;
   }
 
   async updatePrivacy(userId: string, isPrivate: boolean): Promise<void> {
