@@ -11,13 +11,6 @@ This Twitter-like application integrates with AWS S3 to store user profile pictu
 - **Supported Formats**: JPG, JPEG, PNG, GIF, WebP
 - **Database Storage**: S3 keys are stored in the User model
 
-### Post Images
-
-- **Multiple Images**: Support for up to 4 images per post
-- **Upload URL Generation**: Generate pre-signed URLs for post image uploads
-- **Supported Formats**: JPG, JPEG, PNG, GIF, WebP
-- **Database Storage**: S3 keys are stored in the Post model
-
 ## API Endpoints
 
 ### Profile Picture Endpoints
@@ -60,68 +53,12 @@ PUT /api/user/profile-picture
 }
 ```
 
-### Post Image Endpoints
-
-#### Generate Post Image Upload URLs
-
-```
-POST /api/post/{postId}/images/upload-url
-```
-
-**Request Body:**
-
-```json
-{
-  "images": [
-    {
-      "fileExtension": "jpg",
-      "contentType": "image/jpeg"
-    },
-    {
-      "fileExtension": "png",
-      "contentType": "image/png"
-    }
-  ]
-}
-```
-
-**Response:**
-
-```json
-{
-  "uploads": [
-    {
-      "uploadUrl": "https://your-bucket.s3.amazonaws.com/post-images/user-id/post-id/0-timestamp.jpg?...",
-      "imageKey": "post-images/user-id/post-id/0-timestamp.jpg"
-    },
-    {
-      "uploadUrl": "https://your-bucket.s3.amazonaws.com/post-images/user-id/post-id/1-timestamp.png?...",
-      "imageKey": "post-images/user-id/post-id/1-timestamp.png"
-    }
-  ]
-}
-```
-
 ## Setup Instructions
 
 ### 1. AWS S3 Bucket Setup
 
 1. Create an S3 bucket in your AWS account
 2. Configure the bucket for public read access (since images are not private)
-3. Set up CORS policy for your frontend domain
-
-**Example CORS Policy:**
-
-```json
-[
-  {
-    "AllowedHeaders": ["*"],
-    "AllowedMethods": ["GET", "PUT", "POST"],
-    "AllowedOrigins": ["http://localhost:3000", "https://yourdomain.com"],
-    "ExposeHeaders": []
-  }
-]
-```
 
 ### 2. Environment Variables
 
@@ -169,25 +106,12 @@ Create an IAM user with the following policy for S3 access:
 4. **Client**: Confirm upload by calling `/api/user/profile-picture` with the S3 key
 5. **Server**: Update user profile with the new profile picture key
 
-### Post Image Upload Flow
-
-1. **Client**: Request upload URLs from `/api/post/{postId}/images/upload-url`
-2. **Server**: Generate pre-signed URLs for each image and return them with S3 keys
-3. **Client**: Upload images directly to S3 using the pre-signed URLs
-4. **Client**: Create/update post with the S3 keys in the images array
-
 ## S3 Key Structure
 
 ### Profile Pictures
 
 ```
 profile-pictures/{userId}/{timestamp}.{extension}
-```
-
-### Post Images
-
-```
-post-images/{userId}/{postId}/{imageIndex}-{timestamp}.{extension}
 ```
 
 ## Security Features
@@ -224,16 +148,6 @@ The S3 service includes comprehensive error handling for:
 model User {
   // ... existing fields
   profilePicture String? // S3 key for profile picture
-  // ... rest of fields
-}
-```
-
-### Post Model
-
-```prisma
-model Post {
-  // ... existing fields
-  images String[] // Array of S3 keys for post images
   // ... rest of fields
 }
 ```
