@@ -84,24 +84,24 @@ export class UserRepositoryImpl implements UserRepository {
 
     // Add cursor condition if provided
     if (options.after) {
-      whereClause.id = {
-        gt: options.after,
+      whereClause.createdAt = {
+        gt: new Date(options.after),
       };
     } else if (options.before) {
-      whereClause.id = {
-        lt: options.before,
+      whereClause.createdAt = {
+        lt: new Date(options.before),
       };
     }
 
     const users = await this.db.user.findMany({
       where: whereClause,
-      take: options.limit ? options.limit + 1 : undefined, // Take one extra to check if there are more results
+      take: options.limit ? options.limit + 1 : undefined,
       orderBy: [
         {
-          username: "asc",
+          createdAt: "desc", // Most recent users first
         },
         {
-          id: "asc", // Secondary sort by ID for consistent pagination
+          id: "desc", // Secondary sort for tie-breaking
         },
       ],
     });
