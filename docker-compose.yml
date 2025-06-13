@@ -17,10 +17,7 @@ services:
       timeout: 1s
       retries: 15
   server:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: dev
+    image: ghcr.io/martinbarreiro/twitter:latest
     container_name: server
     restart: always
     tty: true

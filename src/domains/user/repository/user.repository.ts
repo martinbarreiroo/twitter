@@ -34,6 +34,11 @@ export interface UserRepository {
     options: OffsetPagination
   ) => Promise<ExtendedPostDTO[]>;
 
+  getRecommendedUsers: (
+    userId: string,
+    options: OffsetPagination
+  ) => Promise<UserViewDTO[]>;
+
   // Counter update methods
   incrementLikesCount: (userId: string) => Promise<void>;
   decrementLikesCount: (userId: string) => Promise<void>;

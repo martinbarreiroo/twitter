@@ -18,6 +18,10 @@ export interface UserService {
     userId?: string
   ) => Promise<UserViewDTO[]>;
 
+  getRecommendedUsers: (
+    userId: string,
+    options: OffsetPagination
+  ) => Promise<UserViewDTO[]>;
   updatePrivacy: (userId: string, isPrivate: boolean) => Promise<void>;
 
   // New methods for user activity

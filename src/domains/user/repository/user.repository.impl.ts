@@ -130,6 +130,41 @@ export class UserRepositoryImpl implements UserRepository {
     return userViewDTOs;
   }
 
+  async getRecommendedUsers(
+    userId: string,
+    options: OffsetPagination
+  ): Promise<UserViewDTO[]> {
+    // Get users that the current user is not following and exclude themselves
+    const users = await this.db.user.findMany({
+      where: {
+        id: {
+          not: userId,
+        },
+        // Exclude users that the current user already follows
+        NOT: {
+          followers: {
+            some: {
+              followerId: userId,
+              deletedAt: null,
+            },
+          },
+        },
+      },
+      take: options.limit || 20,
+      skip: options.skip || 0,
+      orderBy: [
+        {
+          createdAt: "desc",
+        },
+        {
+          id: "desc",
+        },
+      ],
+    });
+
+    return users.map((user) => new UserViewDTO(user as any));
+  }
+
   async updatePrivacy(userId: string, isPrivate: boolean): Promise<void> {
     await this.db.user.update({
       where: {

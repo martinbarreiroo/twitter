@@ -260,6 +260,55 @@ userRouter.get(
 /**
  * @swagger
  * /api/user:
+ *   get:
+ *     summary: Get recommended users
+ *     description: Returns a paginated list of recommended users
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *         description: Maximum number of users to return (default 20)
+ *       - in: query
+ *         name: skip
+ *         schema:
+ *           type: integer
+ *           minimum: 0
+ *         description: Number of users to skip for pagination (default 0)
+ *     responses:
+ *       200:
+ *         description: List of recommended users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Not authorized
+ *       500:
+ *         description: Server error
+ */
+userRouter.get("/", async (req: Request, res: Response) => {
+  const { limit, skip } = req.query as Record<string, string>;
+  const { userId } = res.locals.context;
+
+  const users = await service.getRecommendedUsers(userId, {
+    limit: limit ? Math.min(Number(limit), 100) : 20,
+    skip: skip ? Number(skip) : 0,
+  });
+
+  return res.status(HttpStatus.OK).json(users);
+});
+
+/**
+ * @swagger
+ * /api/user:
  *   delete:
  *     summary: Delete current user account
  *     tags: [Users]
