@@ -57,8 +57,10 @@ import { PostService, PostServiceImpl } from "../service";
  *           type: string
  *           description: Parent post ID (for comments)
  *         images:
- *           type: string
- *           description: S3 key for post image
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: S3 keys for post images
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -97,26 +99,39 @@ import { PostService, PostServiceImpl } from "../service";
  *     PostImageUploadRequest:
  *       type: object
  *       required:
- *         - fileExtension
- *         - contentType
+ *         - images
  *       properties:
- *         fileExtension:
- *           type: string
- *           enum: [jpg, jpeg, png, gif, webp]
- *           description: File extension for the image
- *         contentType:
- *           type: string
- *           enum: [image/jpeg, image/png, image/gif, image/webp]
- *           description: MIME content type of the image
+ *         images:
+ *           type: array
+ *           maxItems: 4
+ *           items:
+ *             type: object
+ *             required:
+ *               - fileExtension
+ *               - contentType
+ *             properties:
+ *               fileExtension:
+ *                 type: string
+ *                 enum: [jpg, jpeg, png, gif, webp]
+ *                 description: File extension for the image
+ *               contentType:
+ *                 type: string
+ *                 enum: [image/jpeg, image/png, image/gif, image/webp]
+ *                 description: MIME content type of the image
  *     PostImageUploadResponse:
  *       type: object
  *       properties:
- *         uploadUrl:
- *           type: string
- *           description: Pre-signed URL for uploading the image to S3
- *         imageKey:
- *           type: string
- *           description: S3 key for the uploaded image
+ *         uploads:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               uploadUrl:
+ *                 type: string
+ *                 description: Pre-signed URL for uploading the image to S3
+ *               imageKey:
+ *                 type: string
+ *                 description: S3 key for the uploaded image
  */
 
 export const postRouter = Router();
@@ -303,8 +318,8 @@ postRouter.post(
  * @swagger
  * /api/post/images/upload-urls:
  *   post:
- *     summary: Generate pre-signed URL for post image upload
- *     description: Get pre-signed URL to upload a post image directly to S3
+ *     summary: Generate pre-signed URLs for post image uploads
+ *     description: Get pre-signed URLs to upload post images directly to S3 (max 4 images)
  *     tags: [Posts]
  *     security:
  *       - bearerAuth: []
@@ -316,7 +331,7 @@ postRouter.post(
  *             $ref: '#/components/schemas/PostImageUploadRequest'
  *     responses:
  *       200:
- *         description: Pre-signed URL generated successfully
+ *         description: Pre-signed URLs generated successfully
  *         content:
  *           application/json:
  *             schema:

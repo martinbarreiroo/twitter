@@ -1,11 +1,15 @@
 import { UserAuthorDTO } from "@domains/user/dto";
 import { Post, Reaction, User } from "@prisma/client";
+import { Type } from "class-transformer";
 import {
+  ArrayMaxSize,
+  IsArray,
   IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
   MaxLength,
+  ValidateNested,
 } from "class-validator";
 
 type PostWithAuthor = Post & {
@@ -35,8 +39,9 @@ export class CreatePostInputDTO {
   content!: string;
 
   @IsOptional()
-  @IsString()
-  image?: string;
+  @IsArray()
+  @ArrayMaxSize(4)
+  images?: string[];
 
   @IsOptional()
   @IsString()
@@ -55,8 +60,7 @@ export class PostDTO {
     this.id = post.id;
     this.authorId = post.authorId;
     this.content = post.content;
-    this.image =
-      post.images && post.images.length > 0 ? post.images[0] : undefined;
+    this.images = post.images;
     this.createdAt = post.createdAt;
     this.parentId = post.parentId || undefined;
   }
@@ -64,7 +68,7 @@ export class PostDTO {
   id: string;
   authorId: string;
   content: string;
-  image?: string;
+  images: string[];
   createdAt: Date;
   parentId?: string;
 }
@@ -118,7 +122,7 @@ export class ExtendedPostDTO extends PostDTO {
   qtyRetweets!: number;
 }
 
-export class PostImageUploadInputDTO {
+export class PostImageUploadRequestDTO {
   @IsString()
   @IsEnum(["jpg", "jpeg", "png", "gif", "webp"])
   fileExtension!: string;
@@ -128,7 +132,15 @@ export class PostImageUploadInputDTO {
   contentType!: string;
 }
 
-export class PostImageUploadResponseDTO {
+export class PostImageUploadInputDTO {
+  @IsArray()
+  @ArrayMaxSize(4)
+  @ValidateNested({ each: true })
+  @Type(() => PostImageUploadRequestDTO)
+  images!: PostImageUploadRequestDTO[];
+}
+
+export class PostImageUploadResultDTO {
   constructor(uploadUrl: string, imageKey: string) {
     this.uploadUrl = uploadUrl;
     this.imageKey = imageKey;
@@ -136,4 +148,12 @@ export class PostImageUploadResponseDTO {
 
   uploadUrl: string;
   imageKey: string;
+}
+
+export class PostImageUploadResponseDTO {
+  constructor(uploads: PostImageUploadResultDTO[]) {
+    this.uploads = uploads;
+  }
+
+  uploads: PostImageUploadResultDTO[];
 }

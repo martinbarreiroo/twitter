@@ -78,7 +78,7 @@ describe("PostServiceImpl", () => {
       const userId = "user-123";
       const postData: CreatePostInputDTO = {
         content: "This is a test post",
-        image: undefined,
+        images: [],
       };
       const mockPost: PostDTO = {
         id: "post-123",
@@ -109,7 +109,7 @@ describe("PostServiceImpl", () => {
         id: postId,
         authorId: "author-123",
         content: "Parent post",
-        image: undefined,
+        images: [],
         createdAt: new Date(),
         parentId: undefined,
         author: {
@@ -186,7 +186,7 @@ describe("PostServiceImpl", () => {
         id: postId,
         authorId: userId,
         content: "Test post",
-        image: undefined,
+        images: [],
         createdAt: new Date(),
         parentId: undefined,
         author: {
@@ -220,7 +220,7 @@ describe("PostServiceImpl", () => {
         id: commentId,
         authorId: userId,
         content: "Test comment",
-        image: undefined,
+        images: [],
         createdAt: new Date(),
         parentId: parentPostId,
         author: {
@@ -272,7 +272,7 @@ describe("PostServiceImpl", () => {
         id: postId,
         authorId: "different-user",
         content: "Test post",
-        image: undefined,
+        images: [],
         createdAt: new Date(),
         parentId: undefined,
         author: {
@@ -305,7 +305,7 @@ describe("PostServiceImpl", () => {
         id: postId,
         authorId: "author-123",
         content: "Test post",
-        image: undefined,
+        images: [],
         createdAt: new Date(),
         parentId: undefined,
         author: {
@@ -350,7 +350,7 @@ describe("PostServiceImpl", () => {
           id: "post-1",
           content: "Post 1",
           authorId: "author-1",
-          image: undefined,
+          images: [],
           createdAt: new Date(),
           parentId: undefined,
           author: {
@@ -370,7 +370,7 @@ describe("PostServiceImpl", () => {
           id: "post-2",
           content: "Post 2",
           authorId: "author-2",
-          image: undefined,
+          images: [],
           createdAt: new Date(),
           parentId: undefined,
           author: {
@@ -410,7 +410,7 @@ describe("PostServiceImpl", () => {
           id: "post-1",
           authorId,
           content: "Post 1",
-          image: undefined,
+          images: [],
           createdAt: new Date(),
           parentId: undefined,
           author: {
@@ -430,7 +430,7 @@ describe("PostServiceImpl", () => {
           id: "post-2",
           authorId,
           content: "Post 2",
-          image: undefined,
+          images: [],
           createdAt: new Date(),
           parentId: undefined,
           author: {
@@ -483,7 +483,7 @@ describe("PostServiceImpl", () => {
           parentId: postId,
           content: "Comment 1",
           authorId: "user-1",
-          image: undefined,
+          images: [],
           createdAt: new Date(),
           author: {
             id: "user-1",
@@ -503,7 +503,7 @@ describe("PostServiceImpl", () => {
           parentId: postId,
           content: "Comment 2",
           authorId: "user-2",
-          image: undefined,
+          images: [],
           createdAt: new Date(),
           author: {
             id: "user-2",
