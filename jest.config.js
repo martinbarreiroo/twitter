@@ -8,4 +8,10 @@ module.exports = {
     "^@types(.*)$": "<rootDir>/src/types$1",
   },
   testMatch: ["**/*.spec.ts"],
+  transform: {
+    "^.+\\.ts$": "ts-jest",
+  },
+  transformIgnorePatterns: [
+    "node_modules/(?!(class-validator|class-transformer)/)",
+  ],
 };

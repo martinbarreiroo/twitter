@@ -1,20 +1,32 @@
-import { PostServiceImpl } from "./post.service.impl";
-import { PostRepository } from "../repository";
 import { UserRepository } from "@domains/user/repository";
-import { ForbiddenException, NotFoundException } from "@utils";
+import { CursorPagination } from "@types";
+import { NotFoundException } from "@utils";
 import { validate } from "class-validator";
 import {
-  CreatePostInputDTO,
-  CreateCommentInputDTO,
-  PostDTO,
   CommentDTO,
+  CreateCommentInputDTO,
+  CreatePostInputDTO,
   ExtendedPostDTO,
+  PostDTO,
 } from "../dto";
-import { CursorPagination } from "@types";
+import { PostRepository } from "../repository";
+import { PostServiceImpl } from "./post.service.impl";
 
 // Mock the dependencies
 jest.mock("class-validator", () => ({
   validate: jest.fn(),
+  IsString: () => () => {},
+  IsNotEmpty: () => () => {},
+  IsOptional: () => () => {},
+  IsArray: () => () => {},
+  IsEnum: () => () => {},
+  MaxLength: () => () => {},
+  ArrayMaxSize: () => () => {},
+  ValidateNested: () => () => {},
+}));
+
+jest.mock("class-transformer", () => ({
+  Type: () => () => {},
 }));
 
 jest.mock("@utils", () => ({
