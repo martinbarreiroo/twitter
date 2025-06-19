@@ -43,6 +43,53 @@ jest.mock("@utils", () => ({
   s3Service: {},
 }));
 
+// Helper function to create mock ExtendedPostDTO objects
+function createMockExtendedPost(overrides: any = {}): ExtendedPostDTO {
+  const mockPostData = {
+    id: "post-123",
+    authorId: "author-123",
+    content: "Test post content",
+    images: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    deletedAt: null,
+    parentId: null,
+    commentsCount: 0,
+    likesCount: 0,
+    retweetsCount: 0,
+    author: {
+      id: "author-123",
+      username: "testuser",
+      name: "Test User",
+      email: "test@example.com",
+      password: "hashedpassword",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      deletedAt: null,
+      isPrivate: false,
+      commentsCount: 0,
+      likesCount: 0,
+      retweetsCount: 0,
+      profilePicture: null,
+      followers: [],
+      follows: [],
+      receivedMessages: [],
+      sentMessages: [],
+      posts: [],
+      reactions: [],
+    },
+    reactions: [],
+    comments: [],
+    _count: {
+      comments: 0,
+      reactions: 0,
+    },
+    ...overrides,
+  };
+
+  return new ExtendedPostDTO(mockPostData);
+}
+
 describe("PostServiceImpl", () => {
   let postService: PostServiceImpl;
   let mockPostRepository: jest.Mocked<PostRepository>;
@@ -105,26 +152,32 @@ describe("PostServiceImpl", () => {
       const commentData: CreateCommentInputDTO = {
         content: "This is a comment",
       };
-      const mockParentPost: ExtendedPostDTO = {
+      const mockParentPost = createMockExtendedPost({
         id: postId,
         authorId: "author-123",
         content: "Parent post",
-        images: [],
-        createdAt: new Date(),
-        parentId: undefined,
         author: {
           id: "author-123",
-          name: "Author",
           username: "author",
-          profilePicture: null,
+          name: "Author",
+          email: "author@test.com",
+          password: "hashedpassword",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          deletedAt: null,
+          isPrivate: false,
+          commentsCount: 0,
           likesCount: 0,
           retweetsCount: 0,
-          commentsCount: 0,
+          profilePicture: null,
+          followers: [],
+          follows: [],
+          receivedMessages: [],
+          sentMessages: [],
+          posts: [],
+          reactions: [],
         },
-        qtyComments: 0,
-        qtyLikes: 0,
-        qtyRetweets: 0,
-      } as ExtendedPostDTO;
+      });
       const mockComment: CommentDTO = {
         id: "comment-123",
         content: commentData.content,
@@ -182,26 +235,32 @@ describe("PostServiceImpl", () => {
     it("should successfully delete a post", async () => {
       const userId = "user-123";
       const postId = "post-456";
-      const mockPost: ExtendedPostDTO = {
+      const mockPost = createMockExtendedPost({
         id: postId,
         authorId: userId,
         content: "Test post",
-        images: [],
-        createdAt: new Date(),
-        parentId: undefined,
         author: {
           id: userId,
-          name: "User",
           username: "user",
-          profilePicture: null,
+          name: "User",
+          email: "user@test.com",
+          password: "hashedpassword",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          deletedAt: null,
+          isPrivate: false,
+          commentsCount: 0,
           likesCount: 0,
           retweetsCount: 0,
-          commentsCount: 0,
+          profilePicture: null,
+          followers: [],
+          follows: [],
+          receivedMessages: [],
+          sentMessages: [],
+          posts: [],
+          reactions: [],
         },
-        qtyComments: 0,
-        qtyLikes: 0,
-        qtyRetweets: 0,
-      } as ExtendedPostDTO;
+      });
 
       mockPostRepository.getById.mockResolvedValue(mockPost);
       mockPostRepository.delete.mockResolvedValue(undefined);
@@ -216,26 +275,33 @@ describe("PostServiceImpl", () => {
       const userId = "user-123";
       const commentId = "comment-456";
       const parentPostId = "post-789";
-      const mockComment: ExtendedPostDTO = {
+      const mockComment = createMockExtendedPost({
         id: commentId,
         authorId: userId,
         content: "Test comment",
-        images: [],
-        createdAt: new Date(),
         parentId: parentPostId,
         author: {
           id: userId,
-          name: "User",
           username: "user",
-          profilePicture: null,
+          name: "User",
+          email: "user@test.com",
+          password: "hashedpassword",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          deletedAt: null,
+          isPrivate: false,
+          commentsCount: 0,
           likesCount: 0,
           retweetsCount: 0,
-          commentsCount: 0,
+          profilePicture: null,
+          followers: [],
+          follows: [],
+          receivedMessages: [],
+          sentMessages: [],
+          posts: [],
+          reactions: [],
         },
-        qtyComments: 0,
-        qtyLikes: 0,
-        qtyRetweets: 0,
-      } as ExtendedPostDTO;
+      });
 
       mockPostRepository.getById.mockResolvedValue(mockComment);
       mockUserRepository.decrementCommentsCount.mockResolvedValue(undefined);
@@ -268,26 +334,32 @@ describe("PostServiceImpl", () => {
     it("should throw ForbiddenException when user is not the author", async () => {
       const userId = "user-123";
       const postId = "post-456";
-      const mockPost: ExtendedPostDTO = {
+      const mockPost = createMockExtendedPost({
         id: postId,
         authorId: "different-user",
         content: "Test post",
-        images: [],
-        createdAt: new Date(),
-        parentId: undefined,
         author: {
           id: "different-user",
-          name: "Different User",
           username: "different",
-          profilePicture: null,
+          name: "Different User",
+          email: "different@test.com",
+          password: "hashedpassword",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          deletedAt: null,
+          isPrivate: false,
+          commentsCount: 0,
           likesCount: 0,
           retweetsCount: 0,
-          commentsCount: 0,
+          profilePicture: null,
+          followers: [],
+          follows: [],
+          receivedMessages: [],
+          sentMessages: [],
+          posts: [],
+          reactions: [],
         },
-        qtyComments: 0,
-        qtyLikes: 0,
-        qtyRetweets: 0,
-      } as ExtendedPostDTO;
+      });
 
       mockPostRepository.getById.mockResolvedValue(mockPost);
 
@@ -301,26 +373,32 @@ describe("PostServiceImpl", () => {
     it("should return post when found", async () => {
       const userId = "user-123";
       const postId = "post-456";
-      const mockPost: ExtendedPostDTO = {
+      const mockPost = createMockExtendedPost({
         id: postId,
         authorId: "author-123",
         content: "Test post",
-        images: [],
-        createdAt: new Date(),
-        parentId: undefined,
         author: {
           id: "author-123",
-          name: "Author",
           username: "author",
-          profilePicture: null,
+          name: "Author",
+          email: "author@test.com",
+          password: "hashedpassword",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          deletedAt: null,
+          isPrivate: false,
+          commentsCount: 0,
           likesCount: 0,
           retweetsCount: 0,
-          commentsCount: 0,
+          profilePicture: null,
+          followers: [],
+          follows: [],
+          receivedMessages: [],
+          sentMessages: [],
+          posts: [],
+          reactions: [],
         },
-        qtyComments: 0,
-        qtyLikes: 0,
-        qtyRetweets: 0,
-      } as ExtendedPostDTO;
+      });
 
       mockPostRepository.getById.mockResolvedValue(mockPost);
 
@@ -346,46 +424,58 @@ describe("PostServiceImpl", () => {
       const userId = "user-123";
       const options: CursorPagination = { limit: 10 };
       const mockPosts: ExtendedPostDTO[] = [
-        {
+        createMockExtendedPost({
           id: "post-1",
           content: "Post 1",
           authorId: "author-1",
-          images: [],
-          createdAt: new Date(),
-          parentId: undefined,
           author: {
             id: "author-1",
-            name: "Author 1",
             username: "author1",
-            profilePicture: null,
+            name: "Author 1",
+            email: "author1@test.com",
+            password: "hashedpassword",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            deletedAt: null,
+            isPrivate: false,
+            commentsCount: 0,
             likesCount: 0,
             retweetsCount: 0,
-            commentsCount: 0,
+            profilePicture: null,
+            followers: [],
+            follows: [],
+            receivedMessages: [],
+            sentMessages: [],
+            posts: [],
+            reactions: [],
           },
-          qtyComments: 0,
-          qtyLikes: 0,
-          qtyRetweets: 0,
-        } as ExtendedPostDTO,
-        {
+        }),
+        createMockExtendedPost({
           id: "post-2",
           content: "Post 2",
           authorId: "author-2",
-          images: [],
-          createdAt: new Date(),
-          parentId: undefined,
           author: {
             id: "author-2",
-            name: "Author 2",
             username: "author2",
-            profilePicture: null,
+            name: "Author 2",
+            email: "author2@test.com",
+            password: "hashedpassword",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            deletedAt: null,
+            isPrivate: false,
+            commentsCount: 0,
             likesCount: 0,
             retweetsCount: 0,
-            commentsCount: 0,
+            profilePicture: null,
+            followers: [],
+            follows: [],
+            receivedMessages: [],
+            sentMessages: [],
+            posts: [],
+            reactions: [],
           },
-          qtyComments: 0,
-          qtyLikes: 0,
-          qtyRetweets: 0,
-        } as ExtendedPostDTO,
+        }),
       ];
 
       mockPostRepository.getAllByDatePaginatedExtended.mockResolvedValue(
@@ -406,46 +496,58 @@ describe("PostServiceImpl", () => {
       const userId = "user-123";
       const authorId = "author-456";
       const mockPosts: ExtendedPostDTO[] = [
-        {
+        createMockExtendedPost({
           id: "post-1",
           authorId,
           content: "Post 1",
-          images: [],
-          createdAt: new Date(),
-          parentId: undefined,
           author: {
             id: authorId,
-            name: "Author",
             username: "author",
-            profilePicture: null,
+            name: "Author",
+            email: "author@test.com",
+            password: "hashedpassword",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            deletedAt: null,
+            isPrivate: false,
+            commentsCount: 0,
             likesCount: 0,
             retweetsCount: 0,
-            commentsCount: 0,
+            profilePicture: null,
+            followers: [],
+            follows: [],
+            receivedMessages: [],
+            sentMessages: [],
+            posts: [],
+            reactions: [],
           },
-          qtyComments: 0,
-          qtyLikes: 0,
-          qtyRetweets: 0,
-        } as ExtendedPostDTO,
-        {
+        }),
+        createMockExtendedPost({
           id: "post-2",
           authorId,
           content: "Post 2",
-          images: [],
-          createdAt: new Date(),
-          parentId: undefined,
           author: {
             id: authorId,
-            name: "Author",
             username: "author",
-            profilePicture: null,
+            name: "Author",
+            email: "author@test.com",
+            password: "hashedpassword",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            deletedAt: null,
+            isPrivate: false,
+            commentsCount: 0,
             likesCount: 0,
             retweetsCount: 0,
-            commentsCount: 0,
+            profilePicture: null,
+            followers: [],
+            follows: [],
+            receivedMessages: [],
+            sentMessages: [],
+            posts: [],
+            reactions: [],
           },
-          qtyComments: 0,
-          qtyLikes: 0,
-          qtyRetweets: 0,
-        } as ExtendedPostDTO,
+        }),
       ];
 
       mockPostRepository.getByAuthorId.mockResolvedValue(mockPosts);
@@ -478,46 +580,60 @@ describe("PostServiceImpl", () => {
       const postId = "post-456";
       const options: CursorPagination = { limit: 10 };
       const mockComments: ExtendedPostDTO[] = [
-        {
+        createMockExtendedPost({
           id: "comment-1",
           parentId: postId,
           content: "Comment 1",
           authorId: "user-1",
-          images: [],
-          createdAt: new Date(),
           author: {
             id: "user-1",
-            name: "User 1",
             username: "user1",
-            profilePicture: null,
+            name: "User 1",
+            email: "user1@test.com",
+            password: "hashedpassword",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            deletedAt: null,
+            isPrivate: false,
+            commentsCount: 0,
             likesCount: 0,
             retweetsCount: 0,
-            commentsCount: 0,
+            profilePicture: null,
+            followers: [],
+            follows: [],
+            receivedMessages: [],
+            sentMessages: [],
+            posts: [],
+            reactions: [],
           },
-          qtyComments: 0,
-          qtyLikes: 0,
-          qtyRetweets: 0,
-        } as ExtendedPostDTO,
-        {
+        }),
+        createMockExtendedPost({
           id: "comment-2",
           parentId: postId,
           content: "Comment 2",
           authorId: "user-2",
-          images: [],
-          createdAt: new Date(),
           author: {
             id: "user-2",
-            name: "User 2",
             username: "user2",
-            profilePicture: null,
+            name: "User 2",
+            email: "user2@test.com",
+            password: "hashedpassword",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            deletedAt: null,
+            isPrivate: false,
+            commentsCount: 0,
             likesCount: 0,
             retweetsCount: 0,
-            commentsCount: 0,
+            profilePicture: null,
+            followers: [],
+            follows: [],
+            receivedMessages: [],
+            sentMessages: [],
+            posts: [],
+            reactions: [],
           },
-          qtyComments: 0,
-          qtyLikes: 0,
-          qtyRetweets: 0,
-        } as ExtendedPostDTO,
+        }),
       ];
 
       mockPostRepository.getCommentsByPostIdWithReactions.mockResolvedValue(
