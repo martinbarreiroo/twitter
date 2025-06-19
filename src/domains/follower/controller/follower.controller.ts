@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
-import HttpStatus from "http-status";
 import "express-async-errors";
+import HttpStatus from "http-status";
 
 import { db } from "@utils";
 

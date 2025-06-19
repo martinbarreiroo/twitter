@@ -1,4 +1,3 @@
-import { AuthServiceImpl } from "./auth.service.impl";
 import { UserRepository } from "@domains/user/repository";
 import {
   ConflictException,
@@ -9,6 +8,7 @@ import {
   generateAccessToken,
 } from "@utils";
 import { LoginInputDTO, SignupInputDTO } from "../dto";
+import { AuthServiceImpl } from "./auth.service.impl";
 
 // Mock the utils
 jest.mock("@utils", () => ({
@@ -68,6 +68,7 @@ describe("AuthServiceImpl", () => {
         retweetsCount: 0,
         commentsCount: 0,
         followsYou: false,
+        following: false,
         isPrivate: signupData.isPrivate || false,
       };
       const mockToken = "jwt_token";

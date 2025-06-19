@@ -1,14 +1,15 @@
-import express from "express";
-import { createServer } from "http";
-import { Server as SocketIOServer } from "socket.io";
-import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import express from "express";
+import { createServer } from "http";
+import morgan from "morgan";
+import "reflect-metadata";
+import { Server as SocketIOServer } from "socket.io";
 
-import { Constants, NodeEnv, Logger, setupSwagger } from "@utils";
-import { router } from "@router";
-import { ErrorHandling } from "@utils/errors";
 import { setupChatSocketHandlers } from "@domains/chat";
+import { router } from "@router";
+import { Constants, Logger, NodeEnv, setupSwagger } from "@utils";
+import { ErrorHandling } from "@utils/errors";
 
 const app = express();
 const httpServer = createServer(app);

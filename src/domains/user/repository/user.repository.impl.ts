@@ -33,11 +33,13 @@ export class UserRepositoryImpl implements UserRepository {
         id: targetUserId,
       },
     });
-    const isFollowing = await this.isFollowingYou(userId, targetUserId);
+    const followsYou = await this.isFollowingYou(targetUserId, userId);
+    const following = await this.isFollowingYou(userId, targetUserId);
 
     if (user) {
       const userViewDto = new UserViewDTO(user as any);
-      userViewDto.followsYou = isFollowing;
+      userViewDto.followsYou = followsYou;
+      userViewDto.following = following;
       return userViewDto;
     }
 
@@ -121,6 +123,7 @@ export class UserRepositoryImpl implements UserRepository {
         // Check follow relationship if userId is provided
         if (userId && user.id !== userId) {
           userViewDto.followsYou = await this.isFollowingYou(user.id, userId);
+          userViewDto.following = await this.isFollowingYou(userId, user.id);
         }
 
         return userViewDto;
@@ -317,6 +320,7 @@ export class UserRepositoryImpl implements UserRepository {
       where: {
         followerId: userId,
         followedId: targetUserId,
+        deletedAt: null,
       },
     });
     return !!follow;

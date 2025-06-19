@@ -60,6 +60,7 @@ describe("UserServiceImpl", () => {
         retweetsCount: 0,
         commentsCount: 0,
         followsYou: false,
+        following: false,
         isPrivate: false,
       };
 
@@ -93,6 +94,7 @@ describe("UserServiceImpl", () => {
         retweetsCount: 0,
         commentsCount: 0,
         followsYou: false,
+        following: false,
         isPrivate: false,
       };
 
@@ -136,6 +138,7 @@ describe("UserServiceImpl", () => {
           retweetsCount: 0,
           commentsCount: 0,
           followsYou: false,
+          following: false,
           isPrivate: false,
         },
         {
@@ -147,6 +150,7 @@ describe("UserServiceImpl", () => {
           retweetsCount: 0,
           commentsCount: 0,
           followsYou: false,
+          following: false,
           isPrivate: false,
         },
       ];

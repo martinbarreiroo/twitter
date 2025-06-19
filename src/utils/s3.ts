@@ -1,7 +1,7 @@
 import {
-  S3Client,
   GetObjectCommand,
   PutObjectCommand,
+  S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -93,6 +93,35 @@ export class S3Service {
   ): string {
     const timestamp = Date.now();
     return `post-images/${userId}/${postId}/${imageIndex}-${timestamp}.${fileExtension}`;
+  }
+
+  /**
+   * Generate a unique key for storing post images with actual post ID
+   * @param userId - The user ID who is posting
+   * @param postId - The actual post ID (after post creation)
+   * @param imageIndex - The index of the image in the post (for multiple images)
+   * @param fileExtension - The file extension (e.g., 'jpg', 'png')
+   * @returns S3 key for the post image
+   */
+  generatePostImageKeyWithPostId(
+    userId: string,
+    postId: string,
+    imageIndex: number,
+    fileExtension: string
+  ): string {
+    return `post-images/${userId}/${postId}/${imageIndex}.${fileExtension}`;
+  }
+
+  /**
+   * Move/copy an image from temporary location to final location
+   * This would be used after post creation to move images to their final location
+   * @param tempKey - The temporary S3 key
+   * @param finalKey - The final S3 key
+   */
+  async moveImage(tempKey: string, finalKey: string): Promise<void> {
+    // Implementation would use S3 copy and delete operations
+    // This is a placeholder for the actual implementation
+    console.log(`Moving image from ${tempKey} to ${finalKey}`);
   }
 
   /**

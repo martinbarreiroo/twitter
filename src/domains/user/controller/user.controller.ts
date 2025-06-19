@@ -51,6 +51,12 @@ import { UserService, UserServiceImpl } from "../service";
  *         commentsCount:
  *           type: integer
  *           description: Number of comments the user has made
+ *         followsYou:
+ *           type: boolean
+ *           description: Whether this user follows the current user
+ *         following:
+ *           type: boolean
+ *           description: Whether the current user is following this user
  *         createdAt:
  *           type: string
  *           format: date-time

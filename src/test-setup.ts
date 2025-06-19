@@ -1,5 +1,6 @@
 // Test setup file for Jest
 // This file is run before each test file
+import "reflect-metadata";
 
 // Mock console.log to reduce noise during tests
 jest.spyOn(console, "log").mockImplementation(() => {});

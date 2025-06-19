@@ -1,13 +1,12 @@
+import { UserAuthorDTO } from "@domains/user/dto";
+import { Post, Reaction, User } from "@prisma/client";
 import {
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
   MaxLength,
-  ArrayMaxSize,
-  IsArray,
 } from "class-validator";
-import { UserAuthorDTO } from "@domains/user/dto";
-import { User, Post, Reaction } from "@prisma/client";
 
 type PostWithAuthor = Post & {
   author: User;
@@ -36,9 +35,8 @@ export class CreatePostInputDTO {
   content!: string;
 
   @IsOptional()
-  @IsArray()
-  @ArrayMaxSize(4)
-  images?: string[];
+  @IsString()
+  image?: string;
 
   @IsOptional()
   @IsString()
@@ -57,7 +55,8 @@ export class PostDTO {
     this.id = post.id;
     this.authorId = post.authorId;
     this.content = post.content;
-    this.images = post.images;
+    this.image =
+      post.images && post.images.length > 0 ? post.images[0] : undefined;
     this.createdAt = post.createdAt;
     this.parentId = post.parentId || undefined;
   }
@@ -65,7 +64,7 @@ export class PostDTO {
   id: string;
   authorId: string;
   content: string;
-  images: string[];
+  image?: string;
   createdAt: Date;
   parentId?: string;
 }
@@ -117,4 +116,24 @@ export class ExtendedPostDTO extends PostDTO {
   qtyComments!: number;
   qtyLikes!: number;
   qtyRetweets!: number;
+}
+
+export class PostImageUploadInputDTO {
+  @IsString()
+  @IsEnum(["jpg", "jpeg", "png", "gif", "webp"])
+  fileExtension!: string;
+
+  @IsString()
+  @IsEnum(["image/jpeg", "image/png", "image/gif", "image/webp"])
+  contentType!: string;
+}
+
+export class PostImageUploadResponseDTO {
+  constructor(uploadUrl: string, imageKey: string) {
+    this.uploadUrl = uploadUrl;
+    this.imageKey = imageKey;
+  }
+
+  uploadUrl: string;
+  imageKey: string;
 }

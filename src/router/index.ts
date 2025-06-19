@@ -1,13 +1,13 @@
-import { Router } from "express";
 import { withAuth } from "@utils";
+import { Router } from "express";
 
-import { userRouter } from "@domains/user";
-import { postRouter, commentRouter } from "@domains/post";
 import { authRouter } from "@domains/auth";
-import { healthRouter } from "@domains/health";
-import { followerRouter } from "@domains/follower";
-import { reactionRouter } from "@domains/reaction";
 import { chatRouter } from "@domains/chat";
+import { followerRouter } from "@domains/follower";
+import { healthRouter } from "@domains/health";
+import { commentRouter, postRouter } from "@domains/post";
+import { reactionRouter } from "@domains/reaction";
+import { userRouter } from "@domains/user";
 
 export const router = Router();
 

@@ -1,9 +1,11 @@
 import {
-  CreatePostInputDTO,
-  CreateCommentInputDTO,
-  PostDTO,
   CommentDTO,
+  CreateCommentInputDTO,
+  CreatePostInputDTO,
   ExtendedPostDTO,
+  PostDTO,
+  PostImageUploadInputDTO,
+  PostImageUploadResponseDTO,
 } from "../dto";
 
 export interface PostService {
@@ -34,4 +36,9 @@ export interface PostService {
     postId: string,
     options: { limit?: number; before?: string; after?: string }
   ) => Promise<ExtendedPostDTO[]>;
+
+  generatePostImageUploadUrls: (
+    userId: string,
+    request: PostImageUploadInputDTO
+  ) => Promise<PostImageUploadResponseDTO>;
 }

@@ -16,10 +16,15 @@ export class PostRepositoryImpl implements PostRepository {
   constructor(private readonly db: PrismaClient) {}
 
   async create(userId: string, data: CreatePostInputDTO): Promise<PostDTO> {
+    // Convert single image to array for database storage
+    const images = data.image ? [data.image] : [];
+
     const post = await this.db.post.create({
       data: {
         authorId: userId,
-        ...data,
+        content: data.content,
+        images: images,
+        parentId: data.parentId,
       },
     });
     return new PostDTO(post);

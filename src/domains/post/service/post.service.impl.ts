@@ -1,17 +1,18 @@
+import { UserRepository } from "@domains/user/repository";
+import { CursorPagination } from "@types";
+import { ForbiddenException, NotFoundException, s3Service } from "@utils";
+import { validate } from "class-validator";
+import { PostService } from ".";
 import {
-  CreatePostInputDTO,
-  CreateCommentInputDTO,
-  PostDTO,
   CommentDTO,
+  CreateCommentInputDTO,
+  CreatePostInputDTO,
   ExtendedPostDTO,
+  PostDTO,
+  PostImageUploadInputDTO,
+  PostImageUploadResponseDTO,
 } from "../dto";
 import { PostRepository } from "../repository";
-import { UserRepository } from "@domains/user/repository";
-import { PostService } from ".";
-import { validate } from "class-validator";
-import { ForbiddenException, NotFoundException } from "@utils";
-import { CursorPagination } from "@types";
-import { s3Service } from "@utils";
 
 export class PostServiceImpl implements PostService {
   constructor(
@@ -110,5 +111,39 @@ export class PostServiceImpl implements PostService {
       postId,
       options
     );
+  }
+
+  async generatePostImageUploadUrls(
+    userId: string,
+    request: PostImageUploadInputDTO
+  ): Promise<PostImageUploadResponseDTO> {
+    await validate(request);
+
+    // Validate file extension
+    if (!s3Service.isValidImageExtension(request.fileExtension)) {
+      throw new Error(
+        `Invalid file extension: ${request.fileExtension}. Only jpg, jpeg, png, gif, and webp are allowed.`
+      );
+    }
+
+    // Generate unique S3 key for the post image
+    // We'll use a temporary postId placeholder that the client should replace
+    const tempPostId = `temp-${Date.now()}-${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
+    const imageKey = s3Service.generatePostImageKey(
+      userId,
+      tempPostId,
+      0, // Single image, so index is always 0
+      request.fileExtension
+    );
+
+    // Generate pre-signed upload URL
+    const uploadUrl = await s3Service.generateUploadUrl(
+      imageKey,
+      request.contentType
+    );
+
+    return new PostImageUploadResponseDTO(uploadUrl, imageKey);
   }
 }
