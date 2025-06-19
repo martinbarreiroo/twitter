@@ -1,13 +1,16 @@
+import { UserAuthorDTO } from "@domains/user/dto";
+import { Post, Reaction, User } from "@prisma/client";
+import { Type } from "class-transformer";
 import {
+  ArrayMaxSize,
+  IsArray,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
   MaxLength,
-  ArrayMaxSize,
-  IsArray,
+  ValidateNested,
 } from "class-validator";
-import { UserAuthorDTO } from "@domains/user/dto";
-import { User, Post, Reaction } from "@prisma/client";
 
 type PostWithAuthor = Post & {
   author: User;
@@ -117,4 +120,40 @@ export class ExtendedPostDTO extends PostDTO {
   qtyComments!: number;
   qtyLikes!: number;
   qtyRetweets!: number;
+}
+
+export class PostImageUploadRequestDTO {
+  @IsString()
+  @IsEnum(["jpg", "jpeg", "png", "gif", "webp"])
+  fileExtension!: string;
+
+  @IsString()
+  @IsEnum(["image/jpeg", "image/png", "image/gif", "image/webp"])
+  contentType!: string;
+}
+
+export class PostImageUploadInputDTO {
+  @IsArray()
+  @ArrayMaxSize(4)
+  @ValidateNested({ each: true })
+  @Type(() => PostImageUploadRequestDTO)
+  images!: PostImageUploadRequestDTO[];
+}
+
+export class PostImageUploadResultDTO {
+  constructor(uploadUrl: string, imageKey: string) {
+    this.uploadUrl = uploadUrl;
+    this.imageKey = imageKey;
+  }
+
+  uploadUrl: string;
+  imageKey: string;
+}
+
+export class PostImageUploadResponseDTO {
+  constructor(uploads: PostImageUploadResultDTO[]) {
+    this.uploads = uploads;
+  }
+
+  uploads: PostImageUploadResultDTO[];
 }

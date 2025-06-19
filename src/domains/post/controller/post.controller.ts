@@ -3,12 +3,12 @@ import HttpStatus from "http-status";
 // express-async-errors is a module that handles async errors in express, don't forget import it in your new controllers
 import "express-async-errors";
 
-import { db, BodyValidation } from "@utils";
+import { BodyValidation, db } from "@utils";
 
-import { PostRepositoryImpl } from "../repository";
 import { UserRepositoryImpl } from "@domains/user/repository";
+import { CreatePostInputDTO, PostImageUploadInputDTO } from "../dto";
+import { PostRepositoryImpl } from "../repository";
 import { PostService, PostServiceImpl } from "../service";
-import { CreatePostInputDTO } from "../dto";
 
 /**
  * @swagger
@@ -311,6 +311,48 @@ postRouter.post(
     const post = await service.createPost(userId, data);
 
     return res.status(HttpStatus.CREATED).json(post);
+  }
+);
+
+/**
+ * @swagger
+ * /api/post/images/upload-urls:
+ *   post:
+ *     summary: Generate pre-signed URLs for post image uploads
+ *     description: Get pre-signed URLs to upload post images directly to S3 (max 4 images)
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/PostImageUploadRequest'
+ *     responses:
+ *       200:
+ *         description: Pre-signed URLs generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PostImageUploadResponse'
+ *       400:
+ *         description: Invalid input data or unsupported file types
+ *       401:
+ *         description: Not authorized
+ *       500:
+ *         description: Server error
+ */
+postRouter.post(
+  "/images/upload-urls",
+  BodyValidation(PostImageUploadInputDTO),
+  async (req: Request, res: Response) => {
+    const { userId } = res.locals.context;
+    const data = req.body;
+
+    const uploadUrls = await service.generatePostImageUploadUrls(userId, data);
+
+    return res.status(HttpStatus.OK).json(uploadUrls);
   }
 );
 
