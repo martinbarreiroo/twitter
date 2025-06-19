@@ -11,7 +11,6 @@ import {
   PostDTO,
   PostImageUploadInputDTO,
   PostImageUploadResponseDTO,
-  PostImageUploadResultDTO,
 } from "../dto";
 import { PostRepository } from "../repository";
 
@@ -120,39 +119,31 @@ export class PostServiceImpl implements PostService {
   ): Promise<PostImageUploadResponseDTO> {
     await validate(request);
 
-    const uploads: PostImageUploadResultDTO[] = [];
-
-    for (let i = 0; i < request.images.length; i++) {
-      const image = request.images[i];
-
-      // Validate file extension
-      if (!s3Service.isValidImageExtension(image.fileExtension)) {
-        throw new Error(
-          `Invalid file extension: ${image.fileExtension}. Only jpg, jpeg, png, gif, and webp are allowed.`
-        );
-      }
-
-      // Generate unique S3 key for the post image
-      // We'll use a temporary postId placeholder that the client should replace
-      const tempPostId = `temp-${Date.now()}-${Math.random()
-        .toString(36)
-        .substr(2, 9)}`;
-      const imageKey = s3Service.generatePostImageKey(
-        userId,
-        tempPostId,
-        i,
-        image.fileExtension
+    // Validate file extension
+    if (!s3Service.isValidImageExtension(request.fileExtension)) {
+      throw new Error(
+        `Invalid file extension: ${request.fileExtension}. Only jpg, jpeg, png, gif, and webp are allowed.`
       );
-
-      // Generate pre-signed upload URL
-      const uploadUrl = await s3Service.generateUploadUrl(
-        imageKey,
-        image.contentType
-      );
-
-      uploads.push(new PostImageUploadResultDTO(uploadUrl, imageKey));
     }
 
-    return new PostImageUploadResponseDTO(uploads);
+    // Generate unique S3 key for the post image
+    // We'll use a temporary postId placeholder that the client should replace
+    const tempPostId = `temp-${Date.now()}-${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
+    const imageKey = s3Service.generatePostImageKey(
+      userId,
+      tempPostId,
+      0, // Single image, so index is always 0
+      request.fileExtension
+    );
+
+    // Generate pre-signed upload URL
+    const uploadUrl = await s3Service.generateUploadUrl(
+      imageKey,
+      request.contentType
+    );
+
+    return new PostImageUploadResponseDTO(uploadUrl, imageKey);
   }
 }
