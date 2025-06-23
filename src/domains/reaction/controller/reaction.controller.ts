@@ -5,11 +5,10 @@ import "express-async-errors";
 
 import { db } from "@utils";
 
-import { ReactionRepositoryImpl } from "../repository";
-import { UserRepositoryImpl } from "@domains/user/repository";
 import { PostRepositoryImpl } from "@domains/post/repository";
+import { UserRepositoryImpl } from "@domains/user/repository";
+import { ReactionRepositoryImpl } from "../repository";
 import { ReactionService, ReactionServiceImpl } from "../service";
-import { ReactionEnum } from "../enum/reaction.enum";
 
 export const reactionRouter = Router();
 
@@ -122,20 +121,27 @@ reactionRouter.post("/:postId", async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /api/reaction/{reactionId}:
+ * /api/reaction/{postId}/{type}:
  *   delete:
- *     summary: Delete a reaction
- *     description: Remove a specific reaction by its ID
+ *     summary: Delete a specific reaction
+ *     description: Remove the current user's specific reaction (like or retweet) from a post
  *     tags: [Reactions]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: reactionId
+ *         name: postId
  *         required: true
  *         schema:
  *           type: string
- *         description: ID of the reaction to delete
+ *         description: ID of the post to remove reaction from
+ *       - in: path
+ *         name: type
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [like, retweet]
+ *         description: Type of reaction to remove
  *     responses:
  *       200:
  *         description: Reaction removed successfully
@@ -147,6 +153,8 @@ reactionRouter.post("/:postId", async (req: Request, res: Response) => {
  *                 message:
  *                   type: string
  *                   example: "Reaction removed successfully"
+ *       400:
+ *         description: Invalid input data
  *       401:
  *         description: Not authorized
  *       404:
@@ -154,10 +162,11 @@ reactionRouter.post("/:postId", async (req: Request, res: Response) => {
  *       500:
  *         description: Server error
  */
-reactionRouter.delete("/:reactionId", async (req: Request, res: Response) => {
-  const { reactionId } = req.params;
+reactionRouter.delete("/:postId/:type", async (req: Request, res: Response) => {
+  const { userId } = res.locals.context; // Current user
+  const { postId, type } = req.params;
 
-  await service.deleteReaction(reactionId);
+  await service.deleteReactionByPostAndType(userId, postId, type);
 
   return res
     .status(HttpStatus.OK)

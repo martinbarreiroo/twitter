@@ -1,14 +1,14 @@
-import { ReactionInputDTO, ReactionOutputDTO } from "../dto";
-import { ReactionRepository } from "../repository";
-import { UserRepository } from "@domains/user/repository";
 import { PostRepository } from "@domains/post/repository";
-import { ReactionService } from "./reaction.service";
-import { ReactionEnum } from "../enum/reaction.enum";
+import { UserRepository } from "@domains/user/repository";
 import {
-  NotFoundException,
   ConflictException,
+  NotFoundException,
   ValidationException,
 } from "@utils/errors";
+import { ReactionInputDTO, ReactionOutputDTO } from "../dto";
+import { ReactionEnum } from "../enum/reaction.enum";
+import { ReactionRepository } from "../repository";
+import { ReactionService } from "./reaction.service";
 
 export class ReactionServiceImpl implements ReactionService {
   constructor(
@@ -88,6 +88,46 @@ export class ReactionServiceImpl implements ReactionService {
 
     const deleted = await this.repository.deleteReaction(id);
     if (!deleted) {
+      throw new NotFoundException("Reaction not found");
+    }
+
+    // Update user counters
+    if (reaction.type === ReactionEnum.LIKE) {
+      await this.userRepository.decrementLikesCount(reaction.userId);
+      await this.postRepository.decrementLikesCount(reaction.postId);
+    } else if (reaction.type === ReactionEnum.RETWEET) {
+      await this.userRepository.decrementRetweetsCount(reaction.userId);
+      await this.postRepository.decrementRetweetsCount(reaction.postId);
+    }
+
+    return true;
+  }
+
+  async deleteReactionByPostAndType(
+    userId: string,
+    postId: string,
+    type: string
+  ): Promise<boolean> {
+    // Validate reaction type
+    if (
+      !type ||
+      (type !== ReactionEnum.LIKE && type !== ReactionEnum.RETWEET)
+    ) {
+      throw new ValidationException([
+        {
+          field: "type",
+          message: "Invalid reaction type. Use 'like' or 'retweet'",
+        },
+      ]);
+    }
+
+    // Get the reaction before deleting to know its type for counter updates
+    const reaction = await this.repository.deleteReactionByUserAndPostAndType(
+      userId,
+      postId,
+      type
+    );
+    if (!reaction) {
       throw new NotFoundException("Reaction not found");
     }
 

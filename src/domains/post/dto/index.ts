@@ -30,6 +30,8 @@ type PostWithAuthorAndReactions = PostWithAuthor & {
   likesCount?: number;
   retweetsCount?: number;
   commentsCount?: number;
+  hasLiked?: boolean;
+  hasRetweeted?: boolean;
 };
 
 export class CreatePostInputDTO {
@@ -60,9 +62,21 @@ export class PostDTO {
     this.id = post.id;
     this.authorId = post.authorId;
     this.content = post.content;
-    this.images = post.images;
+    this.images = this.transformImageKeys(post.images);
     this.createdAt = post.createdAt;
     this.parentId = post.parentId || undefined;
+  }
+
+  private transformImageKeys(imageKeys: string[]): string[] {
+    const S3_BASE_URL = process.env.S3_BASE_URL;
+    return imageKeys.map((key) => {
+      // If the key already contains a full URL, return as is
+      if (key.startsWith("http://") || key.startsWith("https://")) {
+        return key;
+      }
+      // Otherwise, prepend the S3 base URL
+      return `${S3_BASE_URL}${key}`;
+    });
   }
 
   id: string;
@@ -114,12 +128,17 @@ export class ExtendedPostDTO extends PostDTO {
       post.retweetCount ??
       post.reactions?.filter((r) => r.type === "RETWEET").length ??
       0;
+    // Set user reaction status
+    this.hasLiked = post.hasLiked ?? false;
+    this.hasRetweeted = post.hasRetweeted ?? false;
   }
 
   author!: UserAuthorDTO;
   qtyComments!: number;
   qtyLikes!: number;
   qtyRetweets!: number;
+  hasLiked!: boolean;
+  hasRetweeted!: boolean;
 }
 
 export class PostImageUploadRequestDTO {

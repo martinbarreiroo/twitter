@@ -330,12 +330,14 @@ userRouter.get("/", async (req: Request, res: Response) => {
  *       500:
  *         description: Server error
  */
-userRouter.delete("/", async (res: Response) => {
+userRouter.delete("/me", async (req: Request, res: Response) => {
   const { userId } = res.locals.context;
 
   await service.deleteUser(userId);
 
-  return res.status(HttpStatus.OK);
+  return res
+    .status(HttpStatus.OK)
+    .json({ message: "Account deleted successfully" });
 });
 
 /**

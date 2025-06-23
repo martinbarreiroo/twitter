@@ -127,12 +127,17 @@ export class PostRepositoryImpl implements PostRepository {
 
     if (!post) return null;
 
-    // Use counter fields from database
+    // Get user reactions
+    const userReactions = await this.getUserReactions(postId, userId);
+
+    // Use counter fields from database and include user reactions
     const extendedPost = new ExtendedPostDTO({
       ...post,
       commentsCount: post.commentsCount,
       likesCount: post.likesCount,
       retweetsCount: post.retweetsCount,
+      hasLiked: userReactions.hasLiked,
+      hasRetweeted: userReactions.hasRetweeted,
     });
 
     // If the post belongs to a user with a public profile, return it
@@ -220,11 +225,14 @@ export class PostRepositoryImpl implements PostRepository {
     // Transform to ExtendedPostDTO with counter fields from database
     const extendedPosts = await Promise.all(
       posts.map(async (post) => {
+        const userReactions = await this.getUserReactions(post.id, userId);
         return new ExtendedPostDTO({
           ...post,
           commentsCount: post.commentsCount,
           likesCount: post.likesCount,
           retweetsCount: post.retweetsCount,
+          hasLiked: userReactions.hasLiked,
+          hasRetweeted: userReactions.hasRetweeted,
         });
       })
     );
@@ -328,11 +336,14 @@ export class PostRepositoryImpl implements PostRepository {
     // Transform to ExtendedPostDTO with counter fields from database
     const extendedComments = await Promise.all(
       comments.map(async (comment) => {
+        const userReactions = await this.getUserReactions(comment.id, userId);
         return new ExtendedPostDTO({
           ...comment,
           commentsCount: comment.commentsCount,
           likesCount: comment.likesCount,
           retweetsCount: comment.retweetsCount,
+          hasLiked: userReactions.hasLiked,
+          hasRetweeted: userReactions.hasRetweeted,
         });
       })
     );
@@ -413,11 +424,14 @@ export class PostRepositoryImpl implements PostRepository {
     // Transform to ExtendedPostDTO with counter fields from database
     const extendedPosts = await Promise.all(
       posts.map(async (post) => {
+        const userReactions = await this.getUserReactions(post.id, userId);
         return new ExtendedPostDTO({
           ...post,
           commentsCount: post.commentsCount,
           likesCount: post.likesCount,
           retweetsCount: post.retweetsCount,
+          hasLiked: userReactions.hasLiked,
+          hasRetweeted: userReactions.hasRetweeted,
         });
       })
     );
