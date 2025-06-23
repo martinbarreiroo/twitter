@@ -76,6 +76,12 @@ import { PostService, PostServiceImpl } from "../service";
  *         qtyComments:
  *           type: integer
  *           description: Number of comments on this post
+ *         hasLiked:
+ *           type: boolean
+ *           description: Whether the current user has liked this post
+ *         hasRetweeted:
+ *           type: boolean
+ *           description: Whether the current user has retweeted this post
  *     CreatePostInput:
  *       type: object
  *       required:

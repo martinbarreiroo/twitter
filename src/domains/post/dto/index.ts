@@ -30,6 +30,8 @@ type PostWithAuthorAndReactions = PostWithAuthor & {
   likesCount?: number;
   retweetsCount?: number;
   commentsCount?: number;
+  hasLiked?: boolean;
+  hasRetweeted?: boolean;
 };
 
 export class CreatePostInputDTO {
@@ -126,12 +128,17 @@ export class ExtendedPostDTO extends PostDTO {
       post.retweetCount ??
       post.reactions?.filter((r) => r.type === "RETWEET").length ??
       0;
+    // Set user reaction status
+    this.hasLiked = post.hasLiked ?? false;
+    this.hasRetweeted = post.hasRetweeted ?? false;
   }
 
   author!: UserAuthorDTO;
   qtyComments!: number;
   qtyLikes!: number;
   qtyRetweets!: number;
+  hasLiked!: boolean;
+  hasRetweeted!: boolean;
 }
 
 export class PostImageUploadRequestDTO {

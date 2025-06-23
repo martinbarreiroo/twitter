@@ -9,4 +9,9 @@ export interface ReactionRepository {
     type: string
   ): Promise<ReactionOutputDTO | null>;
   deleteReaction(id: string): Promise<boolean>;
+  deleteReactionByUserAndPostAndType(
+    userId: string,
+    postId: string,
+    type: string
+  ): Promise<ReactionOutputDTO | null>;
 }

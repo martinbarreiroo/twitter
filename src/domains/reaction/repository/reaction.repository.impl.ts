@@ -119,4 +119,41 @@ export class ReactionRepositoryImpl implements ReactionRepository {
       return false;
     }
   }
+
+  async deleteReactionByUserAndPostAndType(
+    userId: string,
+    postId: string,
+    type: string
+  ): Promise<ReactionOutputDTO | null> {
+    try {
+      // First find the specific reaction to return it before deletion
+      const reaction = await this.db.reaction.findFirst({
+        where: {
+          authorId: userId,
+          postId: postId,
+          type: type === "like" ? "LIKE" : "RETWEET",
+        },
+      });
+
+      if (!reaction) {
+        return null;
+      }
+
+      // Delete the reaction
+      await this.db.reaction.delete({
+        where: { id: reaction.id },
+      });
+
+      return new ReactionOutputDTO({
+        id: reaction.id,
+        postId: reaction.postId,
+        userId: reaction.authorId,
+        type: reaction.type === "LIKE" ? "like" : "retweet",
+        createdAt: reaction.createdAt,
+        updatedAt: reaction.updatedAt,
+      });
+    } catch (error) {
+      return null;
+    }
+  }
 }
