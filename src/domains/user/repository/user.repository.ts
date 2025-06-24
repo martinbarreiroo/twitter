@@ -45,7 +45,7 @@ export interface UserRepository {
   incrementRetweetsCount: (userId: string) => Promise<void>;
   decrementRetweetsCount: (userId: string) => Promise<void>;
   incrementCommentsCount: (userId: string) => Promise<void>;
-  decrementCommentsCount: (userId: string) => Promise<void>;
+  decrementCommentsCountBy: (userId: string, amount: number) => Promise<void>;
 
   // Profile picture update method
   updateProfilePicture: (

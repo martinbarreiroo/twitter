@@ -505,4 +505,29 @@ export class PostRepositoryImpl implements PostRepository {
       },
     });
   }
+
+  async getCommentAuthorsByPostId(
+    postId: string
+  ): Promise<{ authorId: string; count: number }[]> {
+    const comments = await this.db.post.findMany({
+      where: {
+        parentId: postId,
+        deletedAt: null,
+      },
+      select: {
+        authorId: true,
+      },
+    });
+
+    const commentCounts = new Map<string, number>();
+    comments.forEach((comment) => {
+      const current = commentCounts.get(comment.authorId) || 0;
+      commentCounts.set(comment.authorId, current + 1);
+    });
+
+    return Array.from(commentCounts.entries()).map(([authorId, count]) => ({
+      authorId,
+      count,
+    }));
+  }
 }

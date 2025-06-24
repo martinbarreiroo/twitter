@@ -295,10 +295,13 @@ export class UserRepositoryImpl implements UserRepository {
     });
   }
 
-  async decrementCommentsCount(userId: string): Promise<void> {
+  async decrementCommentsCountBy(
+    userId: string,
+    amount: number
+  ): Promise<void> {
     await this.db.user.update({
       where: { id: userId },
-      data: { commentsCount: { decrement: 1 } },
+      data: { commentsCount: { decrement: amount } },
     });
   }
 
