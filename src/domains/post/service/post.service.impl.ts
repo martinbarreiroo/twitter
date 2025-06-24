@@ -29,9 +29,9 @@ export class PostServiceImpl implements PostService {
   async createComment(
     userId: string,
     postId: string,
-    content: CreateCommentInputDTO
+    data: CreateCommentInputDTO
   ): Promise<CommentDTO> {
-    await validate(content);
+    await validate(data);
 
     // Verify that the parent post exists and user can access it
     const parentPost = await this.repository.getById(postId, userId);
@@ -39,11 +39,7 @@ export class PostServiceImpl implements PostService {
       throw new NotFoundException("parent post");
     }
 
-    const comment = await this.repository.createComment(
-      userId,
-      postId,
-      content
-    );
+    const comment = await this.repository.createComment(userId, postId, data);
 
     // Update user comment counter
     await this.userRepository.incrementCommentsCount(userId);

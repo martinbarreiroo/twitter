@@ -28,12 +28,13 @@ export class PostRepositoryImpl implements PostRepository {
   async createComment(
     userId: string,
     postId: string,
-    content: CreateCommentInputDTO
+    data: CreateCommentInputDTO
   ): Promise<CommentDTO> {
     const comment = await this.db.post.create({
       data: {
         authorId: userId,
-        content: content.content,
+        content: data.content,
+        images: data.images,
         parentId: postId,
       },
     });

@@ -13,7 +13,7 @@ export interface PostService {
   createComment: (
     userId: string,
     postId: string,
-    content: CreateCommentInputDTO
+    data: CreateCommentInputDTO
   ) => Promise<CommentDTO>;
   deletePost: (userId: string, postId: string) => Promise<void>;
   getPost: (userId: string, postId: string) => Promise<ExtendedPostDTO>;

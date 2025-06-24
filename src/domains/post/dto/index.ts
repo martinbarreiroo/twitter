@@ -55,6 +55,11 @@ export class CreateCommentInputDTO {
   @IsNotEmpty()
   @MaxLength(240)
   content!: string;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(4)
+  images?: string[];
 }
 
 export class PostDTO {
@@ -92,13 +97,27 @@ export class CommentDTO {
     this.id = comment.id;
     this.authorId = comment.authorId;
     this.content = comment.content;
+    this.images = this.transformImageKeys(comment.images);
     this.createdAt = comment.createdAt;
     this.parentId = comment.parentId || undefined;
+  }
+
+  private transformImageKeys(imageKeys: string[]): string[] {
+    const S3_BASE_URL = process.env.S3_BASE_URL;
+    return imageKeys.map((key) => {
+      // If the key already contains a full URL, return as is
+      if (key.startsWith("http://") || key.startsWith("https://")) {
+        return key;
+      }
+      // Otherwise, prepend the S3 base URL
+      return `${S3_BASE_URL}${key}`;
+    });
   }
 
   id: string;
   authorId: string;
   content: string;
+  images: string[];
   createdAt: Date;
   parentId?: string;
 }
