@@ -1,10 +1,10 @@
 import { CursorPagination } from "@types";
 import {
-  CreatePostInputDTO,
-  CreateCommentInputDTO,
-  PostDTO,
   CommentDTO,
+  CreateCommentInputDTO,
+  CreatePostInputDTO,
   ExtendedPostDTO,
+  PostDTO,
 } from "../dto";
 
 export interface PostRepository {
@@ -12,7 +12,7 @@ export interface PostRepository {
   createComment: (
     userId: string,
     postId: string,
-    content: CreateCommentInputDTO
+    data: CreateCommentInputDTO
   ) => Promise<CommentDTO>;
   getAllByDatePaginated: (
     userId: string,
