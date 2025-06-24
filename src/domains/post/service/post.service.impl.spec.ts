@@ -106,11 +106,13 @@ describe("PostServiceImpl", () => {
       delete: jest.fn(),
       incrementCommentsCount: jest.fn(),
       decrementCommentsCount: jest.fn(),
+      getCommentAuthorsByPostId: jest.fn(),
     } as any;
 
     mockUserRepository = {
       incrementCommentsCount: jest.fn(),
       decrementCommentsCount: jest.fn(),
+      decrementCommentsCountBy: jest.fn(),
     } as any;
 
     postService = new PostServiceImpl(mockPostRepository, mockUserRepository);
@@ -263,11 +265,15 @@ describe("PostServiceImpl", () => {
       });
 
       mockPostRepository.getById.mockResolvedValue(mockPost);
+      mockPostRepository.getCommentAuthorsByPostId.mockResolvedValue([]);
       mockPostRepository.delete.mockResolvedValue(undefined);
 
       await postService.deletePost(userId, postId);
 
       expect(mockPostRepository.getById).toHaveBeenCalledWith(postId, userId);
+      expect(mockPostRepository.getCommentAuthorsByPostId).toHaveBeenCalledWith(
+        postId
+      );
       expect(mockPostRepository.delete).toHaveBeenCalledWith(postId);
     });
 
@@ -304,19 +310,83 @@ describe("PostServiceImpl", () => {
       });
 
       mockPostRepository.getById.mockResolvedValue(mockComment);
-      mockUserRepository.decrementCommentsCount.mockResolvedValue(undefined);
+      mockUserRepository.decrementCommentsCountBy.mockResolvedValue(undefined);
       mockPostRepository.decrementCommentsCount.mockResolvedValue(undefined);
       mockPostRepository.delete.mockResolvedValue(undefined);
 
       await postService.deletePost(userId, commentId);
 
-      expect(mockUserRepository.decrementCommentsCount).toHaveBeenCalledWith(
-        userId
+      expect(mockUserRepository.decrementCommentsCountBy).toHaveBeenCalledWith(
+        userId,
+        1
       );
       expect(mockPostRepository.decrementCommentsCount).toHaveBeenCalledWith(
         parentPostId
       );
       expect(mockPostRepository.delete).toHaveBeenCalledWith(commentId);
+    });
+
+    it("should delete a post with comments and decrement comment counts", async () => {
+      const userId = "user-123";
+      const postId = "post-456";
+      const mockPost = createMockExtendedPost({
+        id: postId,
+        authorId: userId,
+        content: "Test post",
+        author: {
+          id: userId,
+          username: "user",
+          name: "User",
+          email: "user@test.com",
+          password: "hashedpassword",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          deletedAt: null,
+          isPrivate: false,
+          commentsCount: 0,
+          likesCount: 0,
+          retweetsCount: 0,
+          profilePicture: null,
+          followers: [],
+          follows: [],
+          receivedMessages: [],
+          sentMessages: [],
+          posts: [],
+          reactions: [],
+        },
+      });
+
+      // Mock comment authors - user1 has 2 comments, user2 has 1 comment
+      const mockCommentAuthors = [
+        { authorId: "user-1", count: 2 },
+        { authorId: "user-2", count: 1 },
+      ];
+
+      mockPostRepository.getById.mockResolvedValue(mockPost);
+      mockPostRepository.getCommentAuthorsByPostId.mockResolvedValue(
+        mockCommentAuthors
+      );
+      mockUserRepository.decrementCommentsCountBy.mockResolvedValue(undefined);
+      mockPostRepository.delete.mockResolvedValue(undefined);
+
+      await postService.deletePost(userId, postId);
+
+      expect(mockPostRepository.getById).toHaveBeenCalledWith(postId, userId);
+      expect(mockPostRepository.getCommentAuthorsByPostId).toHaveBeenCalledWith(
+        postId
+      );
+      expect(mockUserRepository.decrementCommentsCountBy).toHaveBeenCalledTimes(
+        2
+      );
+      expect(mockUserRepository.decrementCommentsCountBy).toHaveBeenCalledWith(
+        "user-1",
+        2
+      );
+      expect(mockUserRepository.decrementCommentsCountBy).toHaveBeenCalledWith(
+        "user-2",
+        1
+      );
+      expect(mockPostRepository.delete).toHaveBeenCalledWith(postId);
     });
 
     it("should throw NotFoundException when post does not exist", async () => {

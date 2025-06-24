@@ -43,4 +43,7 @@ export interface PostRepository {
   decrementRetweetsCount: (postId: string) => Promise<void>;
   incrementCommentsCount: (postId: string) => Promise<void>;
   decrementCommentsCount: (postId: string) => Promise<void>;
+  getCommentAuthorsByPostId: (
+    postId: string
+  ) => Promise<{ authorId: string; count: number }[]>;
 }

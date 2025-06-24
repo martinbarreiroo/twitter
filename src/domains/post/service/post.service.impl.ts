@@ -55,10 +55,17 @@ export class PostServiceImpl implements PostService {
     if (!post) throw new NotFoundException("post");
     if (post.authorId !== userId) throw new ForbiddenException();
 
-    // If it's a comment, decrement the user's comment counter and parent post's comment counter
     if (post.parentId) {
-      await this.userRepository.decrementCommentsCount(userId);
+      await this.userRepository.decrementCommentsCountBy(userId, 1);
       await this.repository.decrementCommentsCount(post.parentId);
+    } else {
+      const commentAuthors = await this.repository.getCommentAuthorsByPostId(
+        postId
+      );
+
+      for (const { authorId, count } of commentAuthors) {
+        await this.userRepository.decrementCommentsCountBy(authorId, count);
+      }
     }
 
     await this.repository.delete(postId);
