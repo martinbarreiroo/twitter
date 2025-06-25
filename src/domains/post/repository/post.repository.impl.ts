@@ -221,6 +221,11 @@ export class PostRepositoryImpl implements PostRepository {
         author: true,
         reactions: true,
       },
+      orderBy: [
+        {
+          createdAt: "desc",
+        },
+      ],
     });
 
     // Transform to ExtendedPostDTO with counter fields from database
