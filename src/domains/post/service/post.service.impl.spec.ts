@@ -565,6 +565,7 @@ describe("PostServiceImpl", () => {
     it("should return posts by author", async () => {
       const userId = "user-123";
       const authorId = "author-456";
+      const options: CursorPagination = { limit: 10 };
       const mockPosts: ExtendedPostDTO[] = [
         createMockExtendedPost({
           id: "post-1",
@@ -622,11 +623,16 @@ describe("PostServiceImpl", () => {
 
       mockPostRepository.getByAuthorId.mockResolvedValue(mockPosts);
 
-      const result = await postService.getPostsByAuthor(userId, authorId);
+      const result = await postService.getPostsByAuthor(
+        userId,
+        authorId,
+        options
+      );
 
       expect(mockPostRepository.getByAuthorId).toHaveBeenCalledWith(
         userId,
-        authorId
+        authorId,
+        options
       );
       expect(result).toEqual(mockPosts);
     });
@@ -634,11 +640,12 @@ describe("PostServiceImpl", () => {
     it("should throw NotFoundException when no posts found", async () => {
       const userId = "user-123";
       const authorId = "author-456";
+      const options: CursorPagination = { limit: 10 };
 
       mockPostRepository.getByAuthorId.mockResolvedValue(null);
 
       await expect(
-        postService.getPostsByAuthor(userId, authorId)
+        postService.getPostsByAuthor(userId, authorId, options)
       ).rejects.toThrow("post");
       expect(NotFoundException).toHaveBeenCalledWith("post");
     });
