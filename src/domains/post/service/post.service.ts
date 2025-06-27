@@ -1,3 +1,4 @@
+import { CursorPagination } from "@types";
 import {
   CommentDTO,
   CreateCommentInputDTO,
@@ -19,22 +20,23 @@ export interface PostService {
   getPost: (userId: string, postId: string) => Promise<ExtendedPostDTO>;
   getLatestPosts: (
     userId: string,
-    options: { limit?: number; before?: string; after?: string }
+    options: CursorPagination
   ) => Promise<ExtendedPostDTO[]>;
   getPostsByAuthor: (
     userId: any,
-    authorId: string
+    authorId: string,
+    options: CursorPagination
   ) => Promise<ExtendedPostDTO[]>;
   getCommentsByPostId: (
     userId: string,
     postId: string,
-    options: { limit?: number; before?: string; after?: string }
+    options: CursorPagination
   ) => Promise<ExtendedPostDTO[]>;
 
   getCommentsByPostIdWithReactions: (
     userId: string,
     postId: string,
-    options: { limit?: number; before?: string; after?: string }
+    options: CursorPagination
   ) => Promise<ExtendedPostDTO[]>;
 
   generatePostImageUploadUrls: (

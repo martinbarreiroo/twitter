@@ -62,31 +62,36 @@ export class PostRepositoryImpl implements PostRepository {
     const posts = await this.db.post.findMany({
       where: {
         parentId: null, // Only get posts, not comments
-        OR: [
-          // Posts from public profiles
+        AND: [
+          // Add timestamp filtering for cursor pagination
+          ...(options.after
+            ? [{ createdAt: { lt: new Date(options.after) } }]
+            : []),
+          ...(options.before
+            ? [{ createdAt: { gt: new Date(options.before) } }]
+            : []),
           {
-            author: {
-              isPrivate: false,
-            },
-          },
-          // Posts from private profiles the user follows
-          {
-            authorId: {
-              in: followedUserIds,
-            },
-          },
-          // User's own posts
-          {
-            authorId: userId,
+            OR: [
+              // Posts from public profiles
+              {
+                author: {
+                  isPrivate: false,
+                },
+              },
+              // Posts from private profiles the user follows
+              {
+                authorId: {
+                  in: followedUserIds,
+                },
+              },
+              // User's own posts
+              {
+                authorId: userId,
+              },
+            ],
           },
         ],
       },
-      cursor: options.after
-        ? { id: options.after }
-        : options.before
-        ? { id: options.before }
-        : undefined,
-      skip: options.after ?? options.before ? 1 : undefined,
       take: options.limit
         ? options.before
           ? -options.limit
@@ -171,7 +176,8 @@ export class PostRepositoryImpl implements PostRepository {
   // Update getByAuthorId to return ExtendedPostDTO
   async getByAuthorId(
     userId: string,
-    authorId: string
+    authorId: string,
+    options: CursorPagination
   ): Promise<ExtendedPostDTO[] | null> {
     // Get the author
     const author = await this.db.user.findUnique({
@@ -216,7 +222,20 @@ export class PostRepositoryImpl implements PostRepository {
       where: {
         authorId,
         parentId: null, // Only get posts, not comments
+        AND: [
+          ...(options.after
+            ? [{ createdAt: { lt: new Date(options.after) } }]
+            : []),
+          ...(options.before
+            ? [{ createdAt: { gt: new Date(options.before) } }]
+            : []),
+        ],
       },
+      take: options.limit
+        ? options.before
+          ? -options.limit
+          : options.limit
+        : undefined,
       include: {
         author: true,
         reactions: true,
@@ -224,6 +243,9 @@ export class PostRepositoryImpl implements PostRepository {
       orderBy: [
         {
           createdAt: "desc",
+        },
+        {
+          id: "asc",
         },
       ],
     });
@@ -295,31 +317,36 @@ export class PostRepositoryImpl implements PostRepository {
     const comments = await this.db.post.findMany({
       where: {
         parentId: postId,
-        OR: [
-          // Comments from public profiles
+        AND: [
+          // Add timestamp filtering for cursor pagination
+          ...(options.after
+            ? [{ createdAt: { lt: new Date(options.after) } }]
+            : []),
+          ...(options.before
+            ? [{ createdAt: { gt: new Date(options.before) } }]
+            : []),
           {
-            author: {
-              isPrivate: false,
-            },
-          },
-          // Comments from private profiles the user follows
-          {
-            authorId: {
-              in: followedUserIds,
-            },
-          },
-          // User's own comments
-          {
-            authorId: userId,
+            OR: [
+              // Comments from public profiles
+              {
+                author: {
+                  isPrivate: false,
+                },
+              },
+              // Comments from private profiles the user follows
+              {
+                authorId: {
+                  in: followedUserIds,
+                },
+              },
+              // User's own comments
+              {
+                authorId: userId,
+              },
+            ],
           },
         ],
       },
-      cursor: options.after
-        ? { id: options.after }
-        : options.before
-        ? { id: options.before }
-        : undefined,
-      skip: options.after ?? options.before ? 1 : undefined,
       take: options.limit
         ? options.before
           ? -options.limit
@@ -383,31 +410,36 @@ export class PostRepositoryImpl implements PostRepository {
     const posts = await this.db.post.findMany({
       where: {
         parentId: null, // Only get posts, not comments
-        OR: [
-          // Posts from public profiles
+        AND: [
+          // Add timestamp filtering for cursor pagination
+          ...(options.after
+            ? [{ createdAt: { lt: new Date(options.after) } }]
+            : []),
+          ...(options.before
+            ? [{ createdAt: { gt: new Date(options.before) } }]
+            : []),
           {
-            author: {
-              isPrivate: false,
-            },
-          },
-          // Posts from private profiles the user follows
-          {
-            authorId: {
-              in: followedUserIds,
-            },
-          },
-          // User's own posts
-          {
-            authorId: userId,
+            OR: [
+              // Posts from public profiles
+              {
+                author: {
+                  isPrivate: false,
+                },
+              },
+              // Posts from private profiles the user follows
+              {
+                authorId: {
+                  in: followedUserIds,
+                },
+              },
+              // User's own posts
+              {
+                authorId: userId,
+              },
+            ],
           },
         ],
       },
-      cursor: options.after
-        ? { id: options.after }
-        : options.before
-        ? { id: options.before }
-        : undefined,
-      skip: options.after ?? options.before ? 1 : undefined,
       take: options.limit
         ? options.before
           ? -options.limit
