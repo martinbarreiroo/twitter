@@ -215,6 +215,21 @@ postRouter.get("/", async (req: Request, res: Response) => {
  *           type: string
  *         required: true
  *         description: ID of the user whose posts to fetch
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Maximum number of posts to return
+ *       - in: query
+ *         name: before
+ *         schema:
+ *           type: string
+ *         description: Cursor for pagination (before timestamp)
+ *       - in: query
+ *         name: after
+ *         schema:
+ *           type: string
+ *         description: Cursor for pagination (after timestamp)
  *     responses:
  *       200:
  *         description: List of posts by the specified user with reaction counts and author information
@@ -234,8 +249,13 @@ postRouter.get("/", async (req: Request, res: Response) => {
 postRouter.get("/by_user/:userId", async (req: Request, res: Response) => {
   const { userId } = res.locals.context;
   const { userId: authorId } = req.params;
+  const { limit, before, after } = req.query as Record<string, string>;
 
-  const posts = await service.getPostsByAuthor(userId, authorId);
+  const posts = await service.getPostsByAuthor(userId, authorId, {
+    limit: Number(limit),
+    before,
+    after,
+  });
 
   return res.status(HttpStatus.OK).json(posts);
 });

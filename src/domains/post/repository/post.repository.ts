@@ -31,7 +31,8 @@ export interface PostRepository {
   getById: (postId: string, userId: string) => Promise<ExtendedPostDTO | null>;
   getByAuthorId: (
     userId: string,
-    authorId: string
+    authorId: string,
+    options: CursorPagination
   ) => Promise<ExtendedPostDTO[] | null>;
   getUserReactions: (
     postId: string,
