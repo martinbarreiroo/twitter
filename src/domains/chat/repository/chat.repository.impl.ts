@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { MessageDTO, ConversationDTO } from "../dto";
 import { CursorPagination } from "@types";
+import { ConversationDTO, MessageDTO } from "../dto";
 import { ChatRepository } from "./chat.repository";
 
 export class ChatRepositoryImpl implements ChatRepository {
@@ -27,30 +27,34 @@ export class ChatRepositoryImpl implements ChatRepository {
     userId2: string,
     options: CursorPagination
   ): Promise<MessageDTO[]> {
+    // Build the where clause with timestamp filtering
+    const whereClause: any = {
+      OR: [
+        { senderId: userId1, receiverId: userId2 },
+        { senderId: userId2, receiverId: userId1 },
+      ],
+    };
+
+    // Add timestamp filtering based on cursor
+    if (options.before) {
+      whereClause.createdAt = {
+        lt: new Date(options.before),
+      };
+    } else if (options.after) {
+      whereClause.createdAt = {
+        gt: new Date(options.after),
+      };
+    }
+
     const messages = await this.db.message.findMany({
-      where: {
-        OR: [
-          { senderId: userId1, receiverId: userId2 },
-          { senderId: userId2, receiverId: userId1 },
-        ],
-      },
-      cursor: options.after
-        ? { id: options.after }
-        : options.before
-        ? { id: options.before }
-        : undefined,
-      skip: options.after ?? options.before ? 1 : undefined,
-      take: options.limit
-        ? options.before
-          ? -options.limit
-          : options.limit
-        : 20, // Default limit
+      where: whereClause,
+      take: options.limit || 20, // Default limit
       orderBy: [
         {
           createdAt: "desc",
         },
         {
-          id: "asc",
+          id: "desc",
         },
       ],
     });
