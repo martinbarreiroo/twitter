@@ -567,4 +567,80 @@ export class PostRepositoryImpl implements PostRepository {
       count,
     }));
   }
+
+  async getFollowingPostsPaginated(
+    userId: string,
+    options: CursorPagination
+  ): Promise<ExtendedPostDTO[]> {
+    // Get IDs of users this user follows
+    const followedUsers = await this.db.follow.findMany({
+      where: {
+        followerId: userId,
+        deletedAt: null,
+      },
+      select: {
+        followedId: true,
+      },
+    });
+
+    const followedUserIds = followedUsers.map((follow) => follow.followedId);
+
+    // If user doesn't follow anyone, return empty array
+    if (followedUserIds.length === 0) {
+      return [];
+    }
+
+    // Get posts only from followed users
+    const posts = await this.db.post.findMany({
+      where: {
+        parentId: null, // Only get posts, not comments
+        authorId: {
+          in: followedUserIds,
+        },
+        AND: [
+          // Add timestamp filtering for cursor pagination
+          ...(options.after
+            ? [{ createdAt: { lt: new Date(options.after) } }]
+            : []),
+          ...(options.before
+            ? [{ createdAt: { gt: new Date(options.before) } }]
+            : []),
+        ],
+      },
+      take: options.limit
+        ? options.before
+          ? -options.limit
+          : options.limit
+        : undefined,
+      orderBy: [
+        {
+          createdAt: "desc",
+        },
+        {
+          id: "asc",
+        },
+      ],
+      include: {
+        author: true,
+        reactions: true,
+      },
+    });
+
+    // Transform to ExtendedPostDTO with counter fields from database
+    const extendedPosts = await Promise.all(
+      posts.map(async (post) => {
+        const userReactions = await this.getUserReactions(post.id, userId);
+        return new ExtendedPostDTO({
+          ...post,
+          commentsCount: post.commentsCount,
+          likesCount: post.likesCount,
+          retweetsCount: post.retweetsCount,
+          hasLiked: userReactions.hasLiked,
+          hasRetweeted: userReactions.hasRetweeted,
+        });
+      })
+    );
+
+    return extendedPosts;
+  }
 }

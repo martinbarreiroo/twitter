@@ -43,4 +43,8 @@ export interface PostService {
     userId: string,
     request: PostImageUploadInputDTO
   ) => Promise<PostImageUploadResponseDTO>;
+  getFollowingPosts: (
+    userId: string,
+    options: CursorPagination
+  ) => Promise<ExtendedPostDTO[]>;
 }
