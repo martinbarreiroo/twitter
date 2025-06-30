@@ -163,4 +163,11 @@ export class PostServiceImpl implements PostService {
 
     return new PostImageUploadResponseDTO(uploads);
   }
+
+  async getFollowingPosts(
+    userId: string,
+    options: CursorPagination
+  ): Promise<ExtendedPostDTO[]> {
+    return await this.repository.getFollowingPostsPaginated(userId, options);
+  }
 }

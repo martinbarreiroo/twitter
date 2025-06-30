@@ -47,4 +47,8 @@ export interface PostRepository {
   getCommentAuthorsByPostId: (
     postId: string
   ) => Promise<{ authorId: string; count: number }[]>;
+  getFollowingPostsPaginated: (
+    userId: string,
+    options: CursorPagination
+  ) => Promise<ExtendedPostDTO[]>;
 }

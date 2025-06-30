@@ -6,7 +6,11 @@ import "express-async-errors";
 import { BodyValidation, db } from "@utils";
 
 import { UserRepositoryImpl } from "@domains/user/repository";
-import { CreatePostInputDTO, PostImageUploadInputDTO } from "../dto";
+import {
+  CreatePostInputDTO,
+  PostImageUploadInputDTO,
+  ExtendedPostDTO,
+} from "../dto";
 import { PostRepositoryImpl } from "../repository";
 import { PostService, PostServiceImpl } from "../service";
 
@@ -172,9 +176,15 @@ const service: PostService = new PostServiceImpl(
  *         schema:
  *           type: string
  *         description: Cursor for pagination (after timestamp)
+ *       - in: query
+ *         name: query
+ *         schema:
+ *           type: string
+ *           enum: [following]
+ *         description: Filter posts by query type. Use 'following' to get posts only from users you follow
  *     responses:
  *       200:
- *         description: List of posts with reaction counts and author information
+ *         description: List of posts with reaction counts and author information. If query=following, returns only posts from followed users.
  *         content:
  *           application/json:
  *             schema:
@@ -188,13 +198,23 @@ const service: PostService = new PostServiceImpl(
  */
 postRouter.get("/", async (req: Request, res: Response) => {
   const { userId } = res.locals.context;
-  const { limit, before, after } = req.query as Record<string, string>;
+  const { limit, before, after, query } = req.query as Record<string, string>;
 
-  const posts = await service.getLatestPosts(userId, {
-    limit: Number(limit),
-    before,
-    after,
-  });
+  let posts: ExtendedPostDTO[];
+
+  if (query === "following") {
+    posts = await service.getFollowingPosts(userId, {
+      limit: Number(limit),
+      before,
+      after,
+    });
+  } else {
+    posts = await service.getLatestPosts(userId, {
+      limit: Number(limit),
+      before,
+      after,
+    });
+  }
 
   return res.status(HttpStatus.OK).json(posts);
 });
